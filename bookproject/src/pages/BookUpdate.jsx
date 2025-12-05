@@ -18,7 +18,8 @@ export default function BookUpdate() {
         content: "너무 책을 좋아해서 먹어버린다는 이야기...",
         img: "https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
         likes: 4,
-        writer: "에이블스쿨08",
+        dislikes: 1,
+        writer:"aibles08",
         updated: "2025-12-04 16:11"
     };
 
