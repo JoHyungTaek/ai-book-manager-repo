@@ -1,4 +1,4 @@
-package com.aivle.backend.dto;
+package com.aivle.backend.book.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

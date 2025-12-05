@@ -1,10 +1,10 @@
-package com.aivle.backend.service;
+package com.aivle.backend.book.service;
 
-import com.aivle.backend.domain.Book;
-import com.aivle.backend.domain.User;
-import com.aivle.backend.dto.BookRequestDto;
-import com.aivle.backend.repository.BookRepository;
-import com.aivle.backend.repository.UserRepository;
+import com.aivle.backend.book.domain.Book;
+import com.aivle.backend.user.entity.User;
+import com.aivle.backend.book.dto.BookRequestDto;
+import com.aivle.backend.book.repository.BookRepository;
+import com.aivle.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

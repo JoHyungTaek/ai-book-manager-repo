@@ -1,35 +1,41 @@
-package com.aivle.backend.domain;
+package com.aivle.backend.book.domain;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import com.aivle.backend.user.entity.User;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
-public class User {
-
+@Table(name = "book")
+public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long userId;
+    private Long bookId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user; // 작성자
 
     @Column(nullable = false)
-    private String password;
+    private String bookTitle;
+
+    private String category;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
     @Column(nullable = false)
-    private String name;
+    private String author;
+
+    private String bookImageUrl;
 
     private LocalDateTime createdAt;
 

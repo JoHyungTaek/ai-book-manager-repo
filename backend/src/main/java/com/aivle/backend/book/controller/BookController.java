@@ -1,8 +1,8 @@
-package com.aivle.backend.controller;
+package com.aivle.backend.book.controller;
 
-import com.aivle.backend.domain.Book;
-import com.aivle.backend.dto.BookRequestDto;
-import com.aivle.backend.service.BookService;
+import com.aivle.backend.book.domain.Book;
+import com.aivle.backend.book.dto.BookRequestDto;
+import com.aivle.backend.book.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
