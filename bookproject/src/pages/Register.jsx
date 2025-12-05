@@ -16,7 +16,8 @@ export default function Register() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const register = () => {
+    // 백엔드 /auth/signup 호출
+    const register = async () => {
         if (!form.email || !form.pw || !form.pwCheck || !form.nickname) {
             alert("모든 항목을 입력해주세요!");
             return;
@@ -26,29 +27,51 @@ export default function Register() {
             return;
         }
 
-        alert("회원가입 완료! (API 연결 예정)");
-        nav("/login");
+        try {
+            const res = await fetch("http://localhost:8080/auth/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: form.email,
+                    password: form.pw,      // 🔹 백엔드 DTO 필드명에 맞춤
+                    nickname: form.nickname
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                alert(data?.message || "회원가입에 실패했습니다.");
+                return;
+            }
+
+            alert("회원가입이 완료되었습니다!");
+            nav("/login");
+        } catch (err) {
+            console.error(err);
+            alert("서버 연결에 실패했습니다.");
+        }
     };
 
     return (
         <Box
             sx={{
-                width: "100%",
-                height: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                bgcolor: "#f8f8f8"
+                width:"100%", height:"100vh",
+                display:"flex", justifyContent:"center", alignItems:"center",
+                backgroundColor:"#f5f5f5"
             }}
         >
-            <Paper elevation={6} sx={{ p: 5, width: "450px", borderRadius: "14px" }}>
-
-                <Typography fontSize={28} fontWeight="bold" textAlign="center" mb={1}>
-                    📝 회원가입
-                </Typography>
-
-                <Typography fontSize={14} textAlign="center" mb={4} color="#666">
-                    아래 정보를 입력하여 계정을 생성하세요
+            <Paper
+                elevation={3}
+                sx={{
+                    width:400, p:4,
+                    display:"flex", flexDirection:"column",
+                    alignItems:"center"
+                }}
+            >
+                <Typography variant="h5" sx={{mb:3, fontWeight:"bold"}}>
+                    회원가입
                 </Typography>
 
                 <TextField
