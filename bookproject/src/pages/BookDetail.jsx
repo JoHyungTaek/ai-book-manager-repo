@@ -1,118 +1,131 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
     Box, Typography, Button, Divider, TextField, Paper, IconButton 
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
-import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate, useParams } from "react-router-dom";
 
-export default function BookDetail() {
+export default function BookDetail(){
 
     const nav = useNavigate();
     const { id } = useParams();
 
-    // 로그인 사용자
-    const loginUser = "aibles08";
+    // 🔐 로그인 유저
+    const loginUser = JSON.parse(localStorage.getItem("loginUser"))?.nickname || null;
 
-    // 도서 상세 정보 state
-    const [book, setBook] = useState({
-        id,
-        title:"책 먹는 여우",
-        author:"프란치스카 비어만",
-        category:"유아도서",
-        content:"유익한 내용 요약 예시입니다.",
-        img:"https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
-        likes: 4,
-        dislikes: 1,
-        writer:"aibles08",              // 해당 책을 등록한 사용자
-        updated:"2025-12-04 16:11",
-    });
+    // 📌 책 데이터
+    const [book, setBook] = useState(null);
 
-    // 👍 좋아요/👎 싫어요 토글 상태 저장
-    const [isLiked, setIsLiked] = useState(false);
-    const [isDisliked, setIsDisliked] = useState(false);
-
-    // 👍 좋아요 토글
-    const handleLike = () => {
-        if(isLiked){
-            setBook({...book, likes: book.likes - 1});
-            setIsLiked(false);
-        } else {
-            setBook({...book, likes: book.likes + 1});
-            setIsLiked(true);
-
-            // 싫어요 눌린 상태면 취소
-            if(isDisliked){
-                setBook(prev => ({...prev, dislikes: prev.dislikes - 1}));
-                setIsDisliked(false);
-            }
-        }
-    };
-
-    // 👎 싫어요 토글
-    const handleDislike = () => {
-        if(isDisliked){
-            setBook({...book, dislikes: book.dislikes - 1});
-            setIsDisliked(false);
-        } else {
-            setBook({...book, dislikes: book.dislikes + 1});
-            setIsDisliked(true);
-
-            // 좋아요 눌러져 있으면 취소
-            if(isLiked){
-                setBook(prev => ({...prev, likes: prev.likes - 1}));
-                setIsLiked(false);
-            }
-        }
-    };
-
-    // 🔥 댓글 state
+    // 📌 댓글 관리
     const [comment, setComment] = useState("");
-    const [commentList, setCommentList] = useState([
-        { id:1, user:"reader01", text:"재밌는 책이었어요!", date:"2025-12-04 10:21"},
-        { id:2, user:"reader02", text:"아이랑 같이 읽었어요", date:"2025-12-05 09:14"}
-    ]);
+    const [commentList, setCommentList] = useState([]);
 
-    // 댓글 추가 (날짜 자동 저장)
-    const handleAddComment = () => {
-        if(!comment.trim()) return alert("댓글 내용을 입력해주세요!");
 
-        const now = new Date();
-        const time = now.toISOString().slice(0,16).replace("T"," "); // YYYY-MM-DD HH:mm 형식
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        1) Book + 댓글 불러오기
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    useEffect(() => {
+        const books = JSON.parse(localStorage.getItem("books") || "[]");
+        const target = books.find(b => b.id == id);
 
-        setCommentList([...commentList, {
-            id:Date.now(),
-            user:loginUser,
-            text:comment,
-            date:time
-        }]);
+        if(!target){
+            alert("존재하지 않는 책입니다.");
+            return nav("/books");
+        }
 
+        setBook(target);
+        setCommentList(target.comments || []);
+    }, [id, nav]);
+
+
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        2) 좋아요 토글 (저장까지 반영)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    function toggleLike(){
+        const books = JSON.parse(localStorage.getItem("books") || "[]");
+        const idx = books.findIndex(b => b.id == id);
+
+        const liked = books[idx].isLiked || false;
+        books[idx].likes = liked ? books[idx].likes-1 : books[idx].likes+1;
+        books[idx].isLiked = !liked;
+
+        localStorage.setItem("books", JSON.stringify(books));
+        setBook({...books[idx]});
+    }
+
+
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        3) 댓글 추가 저장
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    function addComment(){
+        if(!loginUser) return alert("로그인이 필요합니다!");
+        if(!comment.trim()) return alert("댓글을 입력해주세요!");
+
+        const newComment = {
+            id: Date.now(),
+            user: loginUser,
+            text: comment,
+            date: new Date().toISOString().slice(0,16).replace("T"," "),
+        };
+
+        const books = JSON.parse(localStorage.getItem("books") || "[]");
+        const idx = books.findIndex(b => b.id == id);
+
+        books[idx].comments = [...(books[idx].comments || []), newComment];
+        localStorage.setItem("books", JSON.stringify(books));
+
+        setCommentList(books[idx].comments);
         setComment("");
-    };
+    }
 
-    // 댓글 삭제 (본인만 가능)
-    const handleCommentDelete = (id, user) => {
+
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        4) 댓글 삭제 (본인만)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    function deleteComment(cid, user){
         if(user !== loginUser) return alert("본인 댓글만 삭제할 수 있습니다.");
-        setCommentList(commentList.filter(c => c.id !== id));
-    };
 
-    // 수정 페이지 이동
-    const goUpdate = () => {
+        const books = JSON.parse(localStorage.getItem("books") || "[]");
+        const idx = books.findIndex(b => b.id == id);
+
+        books[idx].comments = books[idx].comments.filter(c=>c.id!==cid);
+        localStorage.setItem("books", JSON.stringify(books));
+
+        setCommentList(books[idx].comments);
+    }
+
+
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        5) 🔥 수정 버튼 (본인만 표시)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    function goUpdate(){
         if(loginUser !== book.writer) return alert("수정 권한이 없습니다.");
         nav(`/book/update/${id}`);
-    };
+    }
 
-    // 책 삭제
-    const handleDeleteBook = () => {
-        if(loginUser !== book.writer) return alert("삭제 권한이 없습니다.");
-        if(confirm("정말 삭제하시겠습니까?")){
-            alert("삭제 완료!");
-            nav("/books");
-        }
-    };
 
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        6) 삭제 (본인만)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
+    function deleteBook(){
+        if(book.writer !== loginUser) return alert("삭제 권한이 없습니다.");
+        if(!window.confirm("정말 삭제하시겠습니까?")) return;
+
+        let books = JSON.parse(localStorage.getItem("books") || "[]");
+        books = books.filter(b => b.id != id);
+        localStorage.setItem("books", JSON.stringify(books));
+
+        alert("삭제 완료!");
+        nav("/books");
+    }
+
+
+    if(!book) return <div>Loading...</div>;
+
+
+    /*━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ UI ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━*/
     return(
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:3 }}>
 
@@ -120,37 +133,26 @@ export default function BookDetail() {
                 📚 도서 상세 페이지
             </Typography>
 
-            {/* 🔙 목록으로 돌아가기 */}
             <Button variant="outlined" sx={{mb:3}} onClick={()=>nav("/books")}>
-                ← 목록으로 돌아가기
+                ← 목록으로
             </Button>
 
-            {/* ----------- 책 정보 UI ----------- */}
             <Box sx={{ display:"flex", gap:5 }}>
-                <img 
-                    src={book.img} 
-                    alt={book.title}
-                    style={{width:"300px", height:"420px", borderRadius:"6px"}}
+                <img src={book.imageUrl || book.img}
+                     alt={book.title}
+                     style={{width:"300px", height:"420px", borderRadius:"6px"}}
                 />
 
                 <Box sx={{flex:1}}>
                     <Typography fontSize={22}><b>카테고리:</b> {book.category}</Typography>
-                    <Typography fontSize={22} mt={2}><b>제목:</b> {book.title}</Typography>
-                    <Typography fontSize={22} mt={2}><b>저자:</b> {book.author}</Typography>
-                    <Typography fontSize={22} mt={2}><b>내용:</b> {book.content}</Typography>
+                    <Typography fontSize={22} mt={1}><b>제목:</b> {book.title}</Typography>
+                    <Typography fontSize={22} mt={1}><b>저자:</b> {book.author||"정보 없음"}</Typography>
+                    <Typography fontSize={22} mt={1}><b>내용:</b> {book.content}</Typography>
 
-                    {/* 좋아요 / 싫어요 버튼 */}
                     <Box sx={{mt:4, display:"flex", alignItems:"center", gap:2}}>
-                        <ThumbUpAltIcon 
-                            onClick={handleLike}
-                            sx={{cursor:"pointer", color:isLiked ? "#1e88e5" : "inherit"}}
-                        /> {book.likes}
-
-                        <ThumbDownAltIcon 
-                            onClick={handleDislike}
-                            sx={{cursor:"pointer", ml:2, color:isDisliked ? "#e53935" : "inherit"}}
-                        /> {book.dislikes}
-
+                        <ThumbUpAltIcon onClick={toggleLike}
+                            style={{cursor:"pointer", color:book.isLiked?"#1E90FF":"gray"}}/>
+                        {book.likes||0}
                         <PersonIcon sx={{ml:2}}/> {book.writer}
                     </Box>
                 </Box>
@@ -158,45 +160,42 @@ export default function BookDetail() {
 
             <Divider sx={{mt:4, mb:4}}/>
 
-            {/* 수정/삭제 — 본인글일 경우만 표시 */}
-            {loginUser === book.writer && (
-                <Box sx={{display:"flex", justifyContent:"center", gap:3}}>
-                    <Button variant="outlined" onClick={goUpdate}>수정하기</Button>
-                    <Button variant="outlined" color="error" onClick={handleDeleteBook}>삭제하기</Button>
+            {/* ⭐⭐⭐ 수정+삭제 버튼 추가됨 ⭐⭐⭐ */}
+            {loginUser===book.writer && (
+                <Box sx={{display:"flex", justifyContent:"center", gap:2}}>
+                    <Button variant="outlined" onClick={goUpdate}>수정</Button>
+                    <Button variant="outlined" color="error" onClick={deleteBook}>삭제</Button>
                 </Box>
             )}
 
-            {/* ----------- 댓글영역 ----------- */}
+            {/* ========= 댓글 영역 ========= */}
             <Box sx={{mt:6}}>
                 <Typography variant="h6" mb={2}>💬 댓글 {commentList.length}개</Typography>
 
                 {commentList.map(c => (
                     <Paper key={c.id} sx={{p:2, mb:1, display:"flex", justifyContent:"space-between"}}>
                         <Box>
-                            <b>{c.user}</b> : {c.text}
+                            <b>{c.user}</b>: {c.text}
                             <Typography fontSize={12} color="gray">📅 {c.date}</Typography>
                         </Box>
 
                         {c.user === loginUser && (
-                            <IconButton onClick={()=>handleCommentDelete(c.id, c.user)}>
+                            <IconButton onClick={()=>deleteComment(c.id, c.user)}>
                                 <DeleteIcon/>
                             </IconButton>
                         )}
                     </Paper>
                 ))}
 
-                <TextField 
-                    fullWidth 
+                <TextField fullWidth placeholder="댓글을 입력하세요…"
                     value={comment}
-                    onChange={e => setComment(e.target.value)}
-                    placeholder="댓글을 입력하세요..." 
-                    sx={{mt:2}} 
-                />
-
-                <Button fullWidth variant="contained" sx={{mt:1}} onClick={handleAddComment}>
+                    onChange={e=>setComment(e.target.value)}
+                    sx={{mt:2}}/>
+                <Button fullWidth variant="contained" sx={{mt:1}} onClick={addComment}>
                     댓글 등록
                 </Button>
             </Box>
+
         </Box>
     );
 }
