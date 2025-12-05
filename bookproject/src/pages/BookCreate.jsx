@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, TextField, Button, MenuItem, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { createBook } from "../api/bookApi"; // 경로는 프로젝트 구조에 맞게 수정
 
 export default function BookCreate() {
 
@@ -8,6 +9,7 @@ export default function BookCreate() {
 
     const [form, setForm] = useState({
         title: "",
+        author: "",
         content: "",
         category: "",
         imageUrl: "",
@@ -29,11 +31,39 @@ export default function BookCreate() {
         nav("/books"); // 등록 후 목록으로 이동
     }
 
+    // userId가 임시로 1이라 가정
+    const userId = 1;
+
+    async function handleSubmit() {
+        if (!form.title || !form.content || !form.category) {
+            alert("필수 항목을 모두 입력하세요.");
+            return;
+        }
+
+        try {
+        const data = {
+            bookTitle: form.title,
+            author: form.author,
+            content: form.content,
+            category: form.category,
+            bookImageUrl: form.imageUrl,
+        };
+
+            await createBook(userId, data);
+
+            alert("도서 등록 성공!");
+            nav("/books");
+        } catch (err) {
+            console.error("등록 오류:", err);
+            alert("도서 등록에 실패했습니다.");
+        }
+    }
+
     return (
         <Box sx={{ maxWidth:"800px", mx:"auto", mt:5, p:3 }}>
 
             <Typography variant="h5" fontWeight="bold" color="#666" mb={4}>
-                메인페이지 > 도서 등록
+                메인페이지 &gt; 도서 등록
             </Typography>
 
             {/* 제목 */}
@@ -45,6 +75,17 @@ export default function BookCreate() {
                 value={form.title}
                 onChange={handleChange}
                 sx={{ mt:1 }}
+            />
+
+            {/* 저자 */}
+            <Typography fontSize={22} fontWeight="bold" mt={4}>3. 저자 (필수)</Typography>
+            <TextField
+                fullWidth
+                placeholder="저자를 입력하세요"
+                name="author"
+                value={form.author || ""}
+                onChange={handleChange}
+                sx={{ mt: 1 }}
             />
 
             {/* 내용 */}

@@ -4,55 +4,92 @@ import { useParams, useNavigate } from "react-router-dom";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
+import {updateBook, fetchBookDetail} from "../api/bookApi";
 
 export default function BookUpdate() {
 
     const { id } = useParams();
     const nav = useNavigate();
+//     const [form, setForm] = useState(original);
+    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
+    const categories = ["유아도서", "소설", "과학", "인문", "철학", "자기계발", "기타", "시/에세이"];
 
     // 수정 전 기존 데이터 (백엔드 연동 시 GET)
-    const original = {
-        title: "책 먹는 여우",
-        author: "프란치스카 비어만",
-        category: "유아도서",
-        content: "너무 책을 좋아해서 먹어버린다는 이야기...",
-        img: "https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
-        likes: 4,
-        writer: "에이블스쿨08",
-        updated: "2025-12-04 16:11"
-    };
+//     const original = {
+//         title: "책 먹는 여우",
+//         author: "프란치스카 비어만",
+//         category: "유아도서",
+//         content: "너무 책을 좋아해서 먹어버린다는 이야기...",
+//         img: "https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
+//         likes: 4,
+//         writer: "에이블스쿨08",
+//         updated: "2025-12-04 16:11"
+//     };
 
-    const [form, setForm] = useState(original);
-    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
+    const [form, setForm] = useState({
+            bookTitle: "",
+            author: "",
+            category: "",
+            content: "",
+            img: "",
+            likes: 0,
+            writer: "",
+            updated: ""
+    });
 
-    const categories = ["유아도서","소설","과학","인문","철학","자기계발","기타"];
+    useEffect(() => {
+        const loadBook = async () => {
+            try {
+                const data = await fetchBookDetail(id);
+                setForm(data);
+            } catch (err) {
+                console.error("도서 불러오기 실패:", err);
+                alert("도서 정보를 가져오지 못했습니다.");
+            }
+        };
+        loadBook();
+    }, [id]);
 
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
     // 저장
-    const save = () => {
-        alert("수정 완료! (백엔드 연동시 PUT 예정)");
-        nav(`/book/${id}`);
+    const save = async () => {
+        try {
+            await updateBook(id, form);
+            alert("수정 완료!");
+
+            const updatedData = await fetchBookDetail(id);
+            setForm(updatedData);
+
+            nav(`/book/${id}`);
+        } catch (err) {
+            console.error("도서 수정 실패:", err);
+            alert("수정 중 오류가 발생했습니다.");
+        }
     };
 
     return(
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:4 }}>
 
             <Typography fontSize={22} fontWeight="bold" color="#666" mb={4}>
-                메인페이지 > 도서 수정
+                메인페이지 &gt; 도서 수정
             </Typography>
 
             <Box sx={{ display:"flex", gap:5 }}>
 
                 {/* 좌측 — 이미지 */}
                 <Box>
-                    <img
+                    {form.img ? (
+                      <img
                         src={form.img}
-                        style={{ width:"300px", height:"420px", borderRadius:"6px" }}
-                        alt="book"
-                    />
+                        alt={form.bookTitle}
+                        style={{ width: "300px", height: "420px", borderRadius: "6px" }}
+                      />
+                    ) : (
+                      <Typography color="#999">이미지 없음</Typography>
+                    )}
                 </Box>
 
                 {/* 우측 — 수정 가능한 필드 */}
@@ -64,7 +101,7 @@ export default function BookUpdate() {
                     </TextField>
 
                     <Typography fontSize={20} fontWeight={700}>제목</Typography>
-                    <TextField fullWidth name="title" value={form.title} onChange={handleChange} sx={{mb:2}}/>
+                    <TextField fullWidth name="title" value={form.bookTitle} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700}>저자</Typography>
                     <TextField fullWidth name="author" value={form.author} onChange={handleChange} sx={{mb:2}}/>
@@ -97,7 +134,7 @@ export default function BookUpdate() {
                     </Box>
 
                     <Typography fontSize={13} color="#666" mt={1} mb={3}>
-                        마지막 수정: {original.updated}
+                        마지막 수정: {form.updatedAt ? new Date(form.updatedAt).toLocaleString() : "정보 없음"}
                     </Typography>
                 </Box>
             </Box>

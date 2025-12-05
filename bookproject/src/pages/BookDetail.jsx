@@ -3,33 +3,62 @@ import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { fetchBookDetail, deleteBook } from "../api/bookApi";
 
 export default function BookDetail() {
 
     const nav = useNavigate();
     const { id } = useParams(); // URL의 /book/:id 가져옴
+    const [book, setBook] = useState(null);
 
     // 📌 임시 도서데이터 (백엔드 연결 전까지)
-    const book = {
-        id,
-        title:"책 먹는 여우",
-        author:"프란치스카 비어만",
-        category:"유아도서",
-        content:"...",
-        img:"https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
-        likes:4,
-        writer:"에이블스쿨08",
-        updated:"2025-12-04 16:11",
-    };
+//     const book = {
+//         id,
+//         title:"책 먹는 여우",
+//         author:"프란치스카 비어만",
+//         category:"유아도서",
+//         content:"...",
+//         img:"https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
+//         likes:4,
+//         writer:"에이블스쿨08",
+//         updated:"2025-12-04 16:11",
+//     };
+
+    // 페이지 로드 시 백엔드에서 도서 상세정보 가져오기
+    useEffect(() => {
+        const loadBook = async () => {
+            try {
+                const data = await fetchBookDetail(id);
+                setBook(data);
+            } catch (err) {
+                console.error("도서 상세정보 로드 실패:", err);
+                alert("도서 정보를 불러오지 못했습니다.");
+            }
+        };
+        loadBook();
+    }, [id]);
+
+    // 데이터 로딩 중 표시
+    if (!book) {
+        return <Typography align="center" mt={10}>📚 도서 정보를 불러오는 중...</Typography>;
+    }
 
     // 수정 페이지 이동
     const goUpdate = () => nav(`/book/update/${id}`);
 
     // 삭제 클릭
-    const handleDelete = () => {
-        if(confirm("정말 삭제할까요?")){
-            alert("삭제 완료! (백엔드 연결 후 적용)");
-            nav("/books");
+    const handleDelete = async () => {
+        if (confirm("정말 삭제할까요?")) {
+            try {
+                console.log("삭제 요청 ID:", id);
+                await deleteBook(id);
+                alert("삭제 완료!");
+                nav("/books"); // 삭제 후 목록 페이지로 이동
+            } catch (err) {
+                console.error("도서 삭제 실패:", err);
+                alert("삭제 중 오류가 발생했습니다.");
+            }
         }
     };
 
@@ -37,7 +66,7 @@ export default function BookDetail() {
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:3 }}>
 
             <Typography fontSize={22} fontWeight="bold" color="#666" mb={4}>
-                메인페이지 > 상세페이지
+                메인페이지 &gt; 상세페이지
             </Typography>
 
             <Box sx={{ display:"flex", gap:5 }}>
@@ -46,7 +75,7 @@ export default function BookDetail() {
                 <Box>
                     <img
                         src={book.img}
-                        alt={book.title}
+                        alt={book.bookTitle}
                         style={{ width:"300px", height:"420px", borderRadius:"6px" }}
                     />
                 </Box>
@@ -59,7 +88,7 @@ export default function BookDetail() {
                     </Typography>
 
                     <Typography fontSize={22} fontWeight="700" mt={2}>
-                        제목: <span style={{fontWeight:"400"}}>{book.title}</span>
+                        제목: <span style={{fontWeight:"400"}}>{book.bookTitle}</span>
                     </Typography>
 
                     <Typography fontSize={22} fontWeight="700" mt={2}>
@@ -72,7 +101,10 @@ export default function BookDetail() {
 
                     <Box sx={{ opacity:0.6, mt:10 }}>
                         <Typography fontSize={14}>
-                            마지막 수정: {book.updated}
+                            마지막 수정: {""}
+                            {book.updatedAt
+                                ? new Date(book.updatedAt).toLocaleString()
+                                : "정보 없음"}
                         </Typography>
                     </Box>
 
@@ -109,5 +141,3 @@ export default function BookDetail() {
         </Box>
     );
 }
-
-
