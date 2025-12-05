@@ -19,8 +19,9 @@ export default function Header() {
 
                 {/* 오른쪽 메뉴 버튼 영역 */}
                 <Box>
-                    <Button color="inherit" onClick={() => nav("/books")}>책 목록</Button>
                     <Button color="inherit" onClick={() => nav("/book/create")}>책 등록</Button>
+                    <Button color="inherit" onClick={() => nav("/books")}>책 목록</Button>
+                    <Button color="inherit" onClick={() => nav("/board")}>게시판</Button>
                     <Button color="inherit" onClick={() => nav("/login")}>로그아웃</Button>
                 </Box>
 

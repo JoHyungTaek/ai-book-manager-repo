@@ -32,8 +32,17 @@ export default function BookCreate() {
     return (
         <Box sx={{ maxWidth:"800px", mx:"auto", mt:5, p:3 }}>
 
+            {/* 🔥 메인으로 돌아가기 버튼 */}
+            <Button 
+                variant="outlined" 
+                onClick={()=>nav("/main")}
+                sx={{mb:3}}
+            >
+                ← 메인으로 돌아가기
+            </Button>
+
             <Typography variant="h5" fontWeight="bold" color="#666" mb={4}>
-                메인페이지 > 도서 등록
+                메인페이지 &gt; 도서 등록
             </Typography>
 
             {/* 제목 */}

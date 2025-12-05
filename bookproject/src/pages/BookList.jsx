@@ -23,8 +23,17 @@ export default function BookList() {
     return (
         <Box sx={{ width:"100%", maxWidth:"1000px", mx:"auto", mt:4 }}>
 
+            {/* 🔥 메인으로 돌아가기 버튼 */}
+                        <Button 
+                            variant="outlined" 
+                            onClick={()=>nav("/main")}
+                            sx={{mb:3}}
+                        >
+                            ← 메인으로 돌아가기
+                        </Button>
+
             <Typography fontSize={22} fontWeight="bold" mb={4} color="#666">
-                메인페이지 > 도서 목록
+                메인페이지 &gt; 도서 목록
             </Typography>
 
             {/* =====================================================================================

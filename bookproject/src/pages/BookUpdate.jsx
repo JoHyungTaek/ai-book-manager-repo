@@ -41,7 +41,7 @@ export default function BookUpdate() {
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:4 }}>
 
             <Typography fontSize={22} fontWeight="bold" color="#666" mb={4}>
-                메인페이지 > 도서 수정
+                메인페이지 &gt; 도서 수정
             </Typography>
 
             <Box sx={{ display:"flex", gap:5 }}>

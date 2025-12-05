@@ -2,6 +2,7 @@ import { Box, Grid, Card, CardActionArea, CardContent, Typography } from "@mui/m
 import { useNavigate } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ForumIcon from "@mui/icons-material/Forum";    // ← 게시판 아이콘 추가
 
 export default function Main() {
     const nav = useNavigate();
@@ -19,22 +20,24 @@ export default function Main() {
         >
             <Grid
                 container
-                spacing={8}              // 🔥 카드 사이 간격 넓게
+                spacing={8}
                 justifyContent="center"
                 alignItems="center"
             >
 
+                {/* 책 등록 */}
                 <Grid item>
-                    <Card sx={{ width:300, height:320, borderRadius:5 }}>   {/* PC에서도 크게 */}
+                    <Card sx={{ width:300, height:320, borderRadius:5 }}>
                         <CardActionArea sx={{height:"100%"}} onClick={()=>nav("/book/create")}>
                             <CardContent sx={{ textAlign:"center", mt:5 }}>
-                                <EditIcon sx={{fontSize:100}}/>                    {/* 아이콘 100px */}
+                                <EditIcon sx={{fontSize:100}}/>
                                 <Typography variant="h5" sx={{mt:3}}>책 등록하기</Typography>
                             </CardContent>
                         </CardActionArea>
                     </Card>
                 </Grid>
 
+                {/* 책 목록 */}
                 <Grid item>
                     <Card sx={{ width:300, height:320, borderRadius:5 }}>
                         <CardActionArea sx={{height:"100%"}} onClick={()=>nav("/books")}>
@@ -46,8 +49,19 @@ export default function Main() {
                     </Card>
                 </Grid>
 
+                {/* 자유 게시판 */}
+                <Grid item>
+                    <Card sx={{ width:300, height:320, borderRadius:5 }}>
+                        <CardActionArea sx={{height:"100%"}} onClick={()=>nav("/board")}>
+                            <CardContent sx={{ textAlign:"center", mt:5 }}>
+                                <ForumIcon sx={{fontSize:100}} color="primary"/>
+                                <Typography variant="h5" sx={{mt:3}}>자유 게시판</Typography>
+                            </CardContent>
+                        </CardActionArea>
+                    </Card>
+                </Grid>
+
             </Grid>
         </Box>
     );
 }
-
