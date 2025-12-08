@@ -3,7 +3,7 @@ import { Box, TextField, Button, Typography } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function BoardUpdate() {
-
+//테스트
   const { id } = useParams();     // /board/123/edit → 123
   const nav = useNavigate();
 
