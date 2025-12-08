@@ -58,11 +58,37 @@ public class BookService {
     }
 
     // 도서 수정
+//    @Transactional
+//    public Book updateBook(Long bookId, BookRequestDto dto) {
+//        //Book book = getBook(bookId);
+//        Book book = bookRepository.findById(bookId)
+//                .orElseThrow(() -> new BookNotFoundException(bookId));
+//
+//        book.setBookTitle(dto.getBookTitle());
+//        book.setCategory(dto.getCategory());
+//        book.setContent(dto.getContent());
+//
+//        return bookRepository.save(book);
+//    }
+//
+//    // 도서 삭제
+//    @Transactional
+//    public void deleteBook(Long bookId) {
+//        Book book = bookRepository.findById(bookId)
+//                //.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "도서를 찾을 수 없습니다."));
+//                .orElseThrow(() -> new BookNotFoundException(bookId));
+//        bookRepository.delete(book);
+//    }
+
     @Transactional
-    public Book updateBook(Long bookId, BookRequestDto dto) {
-        //Book book = getBook(bookId);
+    public Book updateBook(Long bookId, BookRequestDto dto, Long userId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
+
+        // ✅ 작성자 본인인지 확인
+        if (!book.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인이 작성한 글만 수정할 수 있습니다.");
+        }
 
         book.setBookTitle(dto.getBookTitle());
         book.setCategory(dto.getCategory());
@@ -71,14 +97,19 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    // 도서 삭제
     @Transactional
-    public void deleteBook(Long bookId) {
+    public void deleteBook(Long bookId, Long userId) {
         Book book = bookRepository.findById(bookId)
-                //.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "도서를 찾을 수 없습니다."));
                 .orElseThrow(() -> new BookNotFoundException(bookId));
+
+        // ✅ 작성자 본인인지 확인
+        if (!book.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인이 작성한 글만 삭제할 수 있습니다.");
+        }
+
         bookRepository.delete(book);
     }
+
 
     @Transactional
     public Book toggleLike(Long bookId, Long userId, boolean liked) {

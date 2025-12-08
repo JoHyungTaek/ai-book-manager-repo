@@ -13,6 +13,7 @@ export default function BookDetail() {
     const nav = useNavigate();
     const { id } = useParams(); // URL의 /book/:id 가져옴
     const [book, setBook] = useState(null);
+    const [isOwner, setIsOwner] = useState(false);
 
     // 📌 임시 도서데이터 (백엔드 연결 전까지)
 //     const book = {
@@ -27,19 +28,43 @@ export default function BookDetail() {
 //         updated:"2025-12-04 16:11",
 //     };
 
-    // 페이지 로드 시 백엔드에서 도서 상세정보 가져오기
+
     useEffect(() => {
-        const loadBook = async () => {
-            try {
-                const data = await fetchBookDetail(id);
-                setBook(data);
-            } catch (err) {
-                console.error("도서 상세정보 로드 실패:", err);
-                alert("도서 정보를 불러오지 못했습니다.");
-            }
-        };
-        loadBook();
+            const loadBook = async () => {
+                try {
+                    const data = await fetchBookDetail(id);
+                    setBook(data);
+
+                    // ✅ 현재 로그인한 사용자 닉네임과 비교
+                    const currentNickname = localStorage.getItem("nickname");
+
+                    console.log("현재 로그인 닉네임:", currentNickname);
+                    console.log("책 작성자 닉네임:", data.writer);
+
+                    if (currentNickname && data.writer === currentNickname) {
+                        setIsOwner(true);
+                    }
+                } catch (err) {
+                    console.error("도서 상세정보 로드 실패:", err);
+                    alert("도서 정보를 불러오지 못했습니다.");
+                }
+            };
+            loadBook();
     }, [id]);
+
+//     // 페이지 로드 시 백엔드에서 도서 상세정보 가져오기
+//     useEffect(() => {
+//         const loadBook = async () => {
+//             try {
+//                 const data = await fetchBookDetail(id);
+//                 setBook(data);
+//             } catch (err) {
+//                 console.error("도서 상세정보 로드 실패:", err);
+//                 alert("도서 정보를 불러오지 못했습니다.");
+//             }
+//         };
+//         loadBook();
+//     }, [id]);
 
     // 데이터 로딩 중 표시
     if (!book) {
@@ -160,6 +185,7 @@ export default function BookDetail() {
                     variant="outlined"
                     sx={{width:200, py:1.4, fontSize:"18px", borderColor:"#1a9bff"}}
                     onClick={goUpdate}
+                    disabled={!isOwner} // ✅ 비활성화
                 >
                     수정하기
                 </Button>
@@ -168,6 +194,7 @@ export default function BookDetail() {
                     variant="outlined"
                     sx={{width:200, py:1.4, fontSize:"18px", borderColor:"#ff4b4b", color:"#ff4b4b"}}
                     onClick={handleDelete}
+                    disabled={!isOwner} // ✅ 비활성화
                 >
                     삭제하기
                 </Button>

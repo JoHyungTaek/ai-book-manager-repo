@@ -66,7 +66,13 @@ public class UserService {
         // 리프레시 토큰을 DB에 저장
         user.setRefreshToken(refresh);
 
-        return new LoginResponse(access, refresh);
+//        return new LoginResponse(access, refresh);
+        // ✅ 닉네임도 함께 응답으로 반환
+        return LoginResponse.builder()
+                .accessToken(access)
+                .refreshToken(refresh)
+                .nickname(user.getNickname())  // ✅ 추가
+                .build();
     }
 
     // 리프레시 토큰으로 재발급
@@ -103,7 +109,12 @@ public class UserService {
         // 6. 새 refresh 토큰 저장
         user.setRefreshToken(newRefresh);
 
-        return new LoginResponse(newAccess, newRefresh);
+        //return new LoginResponse(newAccess, newRefresh);
+        return LoginResponse.builder()
+                .accessToken(newAccess)
+                .refreshToken(newRefresh)
+                .nickname(user.getNickname())  // ✅ 추가
+                .build();
     }
 
     // 로그아웃 : refreshToken 제거

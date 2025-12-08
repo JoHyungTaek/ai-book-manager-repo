@@ -49,17 +49,36 @@ public class BookController {
 //        return bookRepository.save(book);
 //    }
 
-    // 책 수정(PUT)
+//    // 책 수정(PUT)
+//    @PutMapping("/{bookId}")
+//    public Book updateBook(@PathVariable Long bookId, @RequestBody BookRequestDto dto) {
+//        return bookService.updateBook(bookId, dto);
+//    }
+//
+//    // 책 삭제 - DELETE
+//    @DeleteMapping("/{bookId}")
+//    public void deleteBook(@PathVariable Long bookId) {
+//        bookService.deleteBook(bookId);
+//    }
     @PutMapping("/{bookId}")
-    public Book updateBook(@PathVariable Long bookId, @RequestBody BookRequestDto dto) {
-        return bookService.updateBook(bookId, dto);
+    public Book updateBook(
+            @PathVariable Long bookId,
+            @RequestBody BookRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long userId = userDetails.getUser().getId(); // 로그인된 사용자 ID
+        return bookService.updateBook(bookId, dto, userId);
     }
 
-    // 책 삭제 - DELETE
     @DeleteMapping("/{bookId}")
-    public void deleteBook(@PathVariable Long bookId) {
-        bookService.deleteBook(bookId);
+    public void deleteBook(
+            @PathVariable Long bookId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long userId = userDetails.getUser().getId(); // 로그인된 사용자 ID
+        bookService.deleteBook(bookId, userId);
     }
+
 
     // 책 조회(단건) - GET
     @GetMapping("/{bookId}")

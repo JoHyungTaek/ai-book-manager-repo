@@ -50,6 +50,10 @@ export default function Login() {
                 localStorage.setItem("refreshToken", data.refreshToken);
             }
 
+            if (data.nickname) {
+                localStorage.setItem("nickname", data.nickname); // ✅ 추가
+            }
+
             alert("로그인 성공!");
             nav("/main");           // 메인 페이지로 이동
         } catch (err) {
