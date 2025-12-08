@@ -36,13 +36,19 @@ public class Book {
     private String author;
 
     private String bookImageUrl;
-    
-    private int likes; // 좋아요 수
-    private int dislikes; // 싫어요 수
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    // 좋아요 / 싫어요 카운트 필드 추가
+    @Builder.Default
+    @Column(nullable = false)
+    private int likes = 0;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private int dislikes = 0;
 
     @PrePersist
     protected void onCreate() {

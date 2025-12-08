@@ -1,6 +1,8 @@
 package com.aivle.backend.book.service;
 
 import com.aivle.backend.book.domain.Book;
+import com.aivle.backend.book.domain.BookLike;
+import com.aivle.backend.book.repository.BookLikeRepository;
 import com.aivle.backend.exception.BookNotFoundException;
 import com.aivle.backend.exception.UserNotFoundException;
 import com.aivle.backend.user.entity.User;
@@ -15,12 +17,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final BookLikeRepository bookLikeRepository;
 
     // 도서 등록
     @Transactional
@@ -75,21 +80,50 @@ public class BookService {
         bookRepository.delete(book);
     }
 
-    // 좋아요 카운트 증가
     @Transactional
-    public Book increaseLikes(Long bookId) {
+    public Book toggleLike(Long bookId, Long userId, boolean liked) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException(bookId));
-        book.setLikes(book.getLikes() + 1);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // 기존에 누른 기록이 있는지 확인
+        Optional<BookLike> existing = bookLikeRepository.findByBookAndUser(book, user);
+
+        if (existing.isPresent()) {
+            BookLike bookLike = existing.get();
+
+            // 이미 같은 반응을 눌렀다면 취소 (삭제)
+            if (bookLike.isLiked() == liked) {
+                bookLikeRepository.delete(bookLike);
+                if (liked) book.setLikes(book.getLikes() - 1);
+                else book.setDislikes(book.getDislikes() - 1);
+            } else {
+                // 반대 반응으로 변경
+                bookLike.setLiked(liked);
+                if (liked) {
+                    book.setLikes(book.getLikes() + 1);
+                    book.setDislikes(book.getDislikes() - 1);
+                } else {
+                    book.setDislikes(book.getDislikes() + 1);
+                    book.setLikes(book.getLikes() - 1);
+                }
+            }
+        } else {
+            // 처음 누른 경우
+            BookLike newLike = BookLike.builder()
+                    .book(book)
+                    .user(user)
+                    .liked(liked)
+                    .build();
+            bookLikeRepository.save(newLike);
+
+            if (liked) book.setLikes(book.getLikes() + 1);
+            else book.setDislikes(book.getDislikes() + 1);
+        }
+
         return bookRepository.save(book);
     }
 
-    // 싫어요 카운트 증가
-    @Transactional
-    public Book increaseDislikes(Long bookId) {
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException(bookId));
-        book.setDislikes(book.getDislikes() + 1);
-        return bookRepository.save(book);
-    }
 }

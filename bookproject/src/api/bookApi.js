@@ -52,12 +52,12 @@ export const deleteBook = async (bookId) => {
 
 // 책 좋아요
 export const likeBook = async (bookId) => {
-    const response = await instance.post(`/api/books/${bookId}/like`);
+    const response = await instance.post(`/api/books/${bookId}/like?liked=true`);
     return response.data;
-}
+};
 
 // 책 싫어요
 export const dislikeBook = async (bookId) => {
-    const response = await instance.post(`/api/books/${bookId}/dislike`);
+    const response = await instance.post(`/api/books/${bookId}/like?liked=false`);
     return response.data;
-}
+};
