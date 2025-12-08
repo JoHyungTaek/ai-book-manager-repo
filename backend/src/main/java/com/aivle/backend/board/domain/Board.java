@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDate;
 
 @Entity
@@ -21,7 +20,6 @@ public class Board {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "board_id")
     private Long boardId; // 게시판 아이디
 
     @Column(nullable = false)
@@ -32,17 +30,18 @@ public class Board {
 
     private int views; // 조회 수
 
+    @Enumerated(EnumType.STRING)
+    private Type type;
+
     @CreationTimestamp
-    @Column(name = "create_at")
     private LocalDate createAt;
 
     @UpdateTimestamp
-    @Column(name = "update_at")
     private LocalDate updateAt;
 
     // user join
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "id", nullable = false)
     private User user;
 
     // book join
@@ -50,7 +49,7 @@ public class Board {
     @JoinColumn(name = "book_id")
     private Book books;
 
-    public enum BoardType {
-        FB, REVIEW
+    public enum Type {
+        CB, REVIEW
     }
 }

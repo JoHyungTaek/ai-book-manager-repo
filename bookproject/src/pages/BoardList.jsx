@@ -31,7 +31,7 @@ export default function BoardList() {
       <Button 
         variant="contained" 
         sx={{ mt:3, float:"right" }}
-        onClick={()=>nav("/board/new")}
+        onClick={()=>nav("/board/write")}
       >
         글쓰기
       </Button>

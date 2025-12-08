@@ -124,8 +124,22 @@ export default function BookUpdate() {
                         sx={{mt:1, mb:2}}
                     />
 
-                    <Button variant="outlined" fullWidth sx={{py:1.4, mb:3}}>
-                        🔥 이미지 생성하기 (기능은 미구현)
+                    <Button
+                        variant="outlined"
+                        fullWidth
+                        sx={{ py: 1.4, mb: 3 }}
+                        onClick={() => {
+                            nav("/ai-book-cover", {
+                            state: {
+                                title: form.title,          // 현재 도서 제목
+                                content: form.content,      // 현재 도서 내용
+                                author: form.author,        // 현재 작가명
+                                category: form.category     // 현재 도서 카테고리
+                            }
+                            });
+                        }}
+                        >
+                        🔥 이미지 생성하기
                     </Button>
 
                     {/* 좋아요/작성자 표시(수정불가 영역) */}
