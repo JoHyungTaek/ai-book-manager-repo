@@ -41,6 +41,15 @@ public class Book {
 
     private LocalDateTime updatedAt;
 
+    // 좋아요 / 싫어요 카운트 필드 추가
+    @Builder.Default
+    @Column(nullable = false)
+    private int likes = 0;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private int dislikes = 0;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

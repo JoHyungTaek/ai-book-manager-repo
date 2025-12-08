@@ -3,8 +3,11 @@ package com.aivle.backend.book.controller;
 import com.aivle.backend.book.domain.Book;
 import com.aivle.backend.book.dto.BookRequestDto;
 import com.aivle.backend.book.service.BookService;
+import com.aivle.backend.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +23,7 @@ public class BookController {
         return bookService.insertBook(userId, dto);
     }
 
-    // 책 수정(PATCH)
+    // 책 수정(PUT)
     @PutMapping("/{bookId}")
     public Book updateBook(@PathVariable Long bookId, @RequestBody BookRequestDto dto) {
         return bookService.updateBook(bookId, dto);
@@ -48,4 +51,24 @@ public class BookController {
             throw new RuntimeException("책 목록 조회 실패", e);
         }
     }
+
+//    @PostMapping("/{bookId}/like")
+//    public ResponseEntity<Book> toggleLike(
+//            @PathVariable Long bookId,
+//            @RequestParam Long userId,
+//            @RequestParam boolean liked) {
+//        Long userId = userDetails.getUser().getId();  // JWT 토큰에서 사용자 ID 추출
+//        Book updated = bookService.toggleLike(bookId, userId, liked);
+//        return ResponseEntity.ok(updated);
+//    }
+    @PostMapping("/{bookId}/like")
+    public ResponseEntity<Book> toggleLike(
+            @PathVariable Long bookId,
+            @RequestParam boolean liked,
+            @AuthenticationPrincipal CustomUserDetails userDetails) { // 로그인된 사용자 정보 주입
+        Long userId = userDetails.getUser().getId();  // JWT에서 가져온 사용자 ID
+        Book updated = bookService.toggleLike(bookId, userId, liked);
+        return ResponseEntity.ok(updated);
+    }
+
 }

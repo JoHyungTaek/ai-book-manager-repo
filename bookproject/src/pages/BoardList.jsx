@@ -12,8 +12,8 @@ export default function BoardList() {
       </Typography>
 
       {/* 🔥 메인으로 돌아가기 버튼 */}
-                  <Button 
-                      variant="outlined" 
+                  <Button
+                      variant="outlined"
                       onClick={()=>nav("/main")}
                       sx={{mb:3}}
                   >
@@ -28,8 +28,8 @@ export default function BoardList() {
         </CardContent>
       </Card>
 
-      <Button 
-        variant="contained" 
+      <Button
+        variant="contained"
         sx={{ mt:3, float:"right" }}
         onClick={()=>nav("/board/write")}
       >

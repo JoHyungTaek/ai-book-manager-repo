@@ -6,7 +6,7 @@ import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
-import { fetchBookDetail, deleteBook } from "../api/bookApi";
+import { fetchBookDetail, deleteBook, likeBook, dislikeBook } from "../api/bookApi";
 
 export default function BookDetail() {
 
@@ -111,12 +111,42 @@ export default function BookDetail() {
                     </Box>
 
                     {/* 좋아요/싫어요 + 작성자 */}
+{/*                     <Box sx={{ display:"flex", alignItems:"center", gap:1, mt:1 }}> */}
+{/*                         <ThumbUpAltIcon /> {book.likes} */}
+{/*                         <ThumbDownAltIcon sx={{ml:2}} /> */}
+{/*                         <PersonIcon sx={{ml:2, opacity:0.7}} /> {book.writer} */}
+{/*                     </Box> */}
                     <Box sx={{ display:"flex", alignItems:"center", gap:1, mt:1 }}>
-                        <ThumbUpAltIcon /> {book.likes}
-                        <ThumbDownAltIcon sx={{ml:2}} />
-                        <PersonIcon sx={{ml:2, opacity:0.7}} /> {book.writer}
-                    </Box>
+                      <ThumbUpAltIcon
+                       sx={{ cursor: "pointer" }}
+                       onClick={async () => {
+                           try {
+                               const updated = await likeBook(id);
+                               setBook(updated);
+                           } catch (err) {
+                               console.error("좋아요 실패:", err);
+                               alert("좋아요 처리 중 오류가 발생했습니다.");
+                           }
+                       }}
+                      />
+                      {book.likes}
 
+                      <ThumbDownAltIcon
+                       sx={{ ml:2, cursor: "pointer" }}
+                       onClick={async () => {
+                           try {
+                               const updated = await dislikeBook(id);
+                               setBook(updated);
+                           } catch (err) {
+                               console.error("싫어요 실패:", err);
+                               alert("싫어요 처리 중 오류가 발생했습니다.");
+                           }
+                       }}
+                      />
+                      {book.dislikes}
+
+                      <PersonIcon sx={{ ml:2, opacity:0.7 }} /> {book.writer}
+                    </Box>
                 </Box>
             </Box>
 
