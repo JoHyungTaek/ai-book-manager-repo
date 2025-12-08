@@ -17,17 +17,14 @@ export default function BoardWrite(){
       try {
           const data = {
               title: title,
-              content: content,
-              user: {   // user api통해서 회원 정보 조회 및 넘겨줘야 함
-                  id: 1 // 현재 로그인 되어 있는 회원의 id로 설정해줘야 등록 가능.
-              },
+              content: content
               // 책 후기 등록 시 아래 어떤 book에 대한 후기인지 bookId 넘겨줘야 함.
               // book: {
               //    bookId: [책 id]
               // }
           };
 
-          let userId = 'test123@naver.com'; // 현재 로그인 되어 있는 회원 이메일
+          let userId = 'test123@naver.com'; // 현재 로그인 되어 있는 회원 이메일로 설정할 것.
 
           await createBoard(userId, data);
 

@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @RestController
-@RequestMapping("/boards")
+@RequestMapping("/api/boards")
 @RequiredArgsConstructor
 public class BoardController {
     public final BoardService boardService;
