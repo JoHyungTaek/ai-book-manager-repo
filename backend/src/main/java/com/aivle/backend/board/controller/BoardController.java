@@ -1,6 +1,7 @@
 package com.aivle.backend.board.controller;
 
 import com.aivle.backend.board.domain.Board;
+import com.aivle.backend.board.dto.BoardResponseDto;
 import com.aivle.backend.board.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -8,18 +9,21 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/boards")
+@RequestMapping("/boards/{type}")
 @RequiredArgsConstructor
 public class BoardController {
     public final BoardService boardService;
 
     @PostMapping
-    public Board createBoard(@RequestBody Board board) {
+    public Board createBoard(@PathVariable("type") String type, @RequestBody Board board) {
+        board.setType(Board.Type.valueOf(type.toUpperCase()));
+        // type이 book 일 경우 bookId null 체크
         return boardService.insertBoard(board);
     }
 
     @PutMapping
-    public Board updateBoard(@RequestBody Board board) {
+    public Board updateBoard(@PathVariable("type") String type, @RequestBody Board board) {
+        board.setType(Board.Type.valueOf(type.toUpperCase()));
         return boardService.updateBoard(board);
     }
 
@@ -35,7 +39,7 @@ public class BoardController {
     }
 
     @GetMapping
-    public List<Board> getBoardList() {
-        return boardService.getBoardsAll();
+    public List<BoardResponseDto> getBoardList(@PathVariable("type") String type) {
+        return boardService.findBoardAll(Board.Type.valueOf(type.toUpperCase()));
     }
 }

@@ -1,9 +1,11 @@
 package com.aivle.backend.board.service;
 
 import com.aivle.backend.board.domain.Board;
+import com.aivle.backend.board.dto.BoardResponseDto;
 import com.aivle.backend.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,20 +26,26 @@ public class BoardService {
 
     // 삭제
     public void deleteBoard(Long id) {
-        Board b = findBoard(id);
+        Board b = getBoard(id);
         boardRepository.delete(b);
     }
 
     // 게시판 정보 조회
-    public Board findBoard(Long id) {
+    private Board getBoard(Long id) {
         // orElseThrow(): id에 해당하는 데이터가 없다면 예외 발생 처리
         return boardRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
     }
 
-    // 목록 조회
-    public List<Board> getBoardsAll() {
-        return boardRepository.findAll();
+    // 게시판 정보 조회 - 사용자 요청
+    @Transactional(readOnly = true)
+    public Board findBoard(Long id){
+        // 조회 수 증가
+        boardRepository.updateViews(id);
+        return getBoard(id);
     }
 
-    // 조회 수 증가 구현 필요.
+    // 목록 조회
+    public List<BoardResponseDto> findBoardAll(Board.Type type) {
+        return boardRepository.findBoardByType(type);
+    }
 }
