@@ -1,111 +1,143 @@
+// 2025-12-05 16:34 형택님 마지막 수정으로 복구
+
 import { useState } from "react";
-import { Box, TextField, Button, MenuItem, Typography, Paper } from "@mui/material";
+import { Box, TextField, Button, MenuItem, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { createBook } from "../api/bookApi"; // 경로는 프로젝트 구조에 맞게 수정
 
 export default function BookCreate() {
 
     const nav = useNavigate();
 
-    // 🔹 로그인 확인 (없으면 로그인 페이지로 이동)
-    const loginUser = JSON.parse(localStorage.getItem("loginUser"));
-    if(!loginUser) nav("/login");
-
-    // 🔹 입력 state (author 추가)
     const [form, setForm] = useState({
-        title:"",
-        author:"",       // ⭐ 새로 추가됨
-        content:"",
-        category:"",
-        imageUrl:""
+        title: "",
+        author: "",
+        content: "",
+        category: "",
+        imageUrl: "",
     });
 
-    const categories = ["소설","시/에세이","과학/기술","철학","자기계발","역사","사회","기타"];
+    const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
-    function handleChange(e){
-        setForm({...form, [e.target.name]: e.target.value});
+    function handleChange(e) {
+        setForm({ ...form, [e.target.name]: e.target.value });
     }
 
-    // 🔥 LocalStorage 등록
-    function handleSubmit(){
-        if(!form.title || !form.author || !form.content || !form.category){
-            return alert("필수 항목(제목 / 저자 / 내용 / 카테고리)을 입력해주세요.");
+    // 📌 제출 (백엔드 API 연동 전까지는 alert로 테스트)
+    function handleSubmit() {
+        if(!form.title || !form.content || !form.category){
+            alert("필수 항목을 모두 입력하세요.");
+            return;
+        }
+        alert("등록 완료! (백엔드 연결 전 테스트)");
+        nav("/books"); // 등록 후 목록으로 이동
+    }
+
+    // userId가 임시로 1이라 가정
+    const userId = 1;
+
+    async function handleSubmit() {
+        if (!form.title || !form.content || !form.category) {
+            alert("필수 항목을 모두 입력하세요.");
+            return;
         }
 
-        const books = JSON.parse(localStorage.getItem("books") || "[]");
-        const time = new Date().toISOString().slice(0,16).replace("T"," ");
-
-        const newBook = {
-            id: Date.now(),
-            title: form.title,
-            author: form.author,     // ⭐ 저장됨
+        try {
+        const data = {
+            bookTitle: form.title,
+            author: form.author,
             content: form.content,
             category: form.category,
-            imageUrl: form.imageUrl || "",
-            writer: loginUser.nickname,       // 작성자
-            created: time,
-            likes: 0,
-            comments:[]
+            bookImageUrl: form.imageUrl,
         };
 
-        books.push(newBook);
-        localStorage.setItem("books", JSON.stringify(books));
+            await createBook(userId, data);
 
-        alert("📚 도서 등록 완료!");
-        nav("/books");
+            alert("도서 등록 성공!");
+            nav("/books");
+        } catch (err) {
+            console.error("등록 오류:", err);
+            alert("도서 등록에 실패했습니다.");
+        }
     }
 
-    return(
-        <Box sx={{display:"flex", justifyContent:"center", mt:4}}>
-            <Paper sx={{width:"700px", p:5, borderRadius:"12px"}} elevation={4}>
+    return (
+        <Box sx={{ maxWidth:"800px", mx:"auto", mt:5, p:3 }}>
 
-                {/* 뒤로가기 */}
-                <Button variant="outlined" onClick={()=>nav("/main")} sx={{mb:3}}>
-                    ← 메인으로 돌아가기
-                </Button>
+            <Typography variant="h5" fontWeight="bold" color="#666" mb={4}>
+                메인페이지 &gt; 도서 등록
+            </Typography>
 
-                <Typography fontSize={28} fontWeight="bold" color="#444" mb={3}>
-                    📚 도서 등록
-                </Typography>
+            {/* 제목 */}
+            <Typography fontSize={22} fontWeight="bold" mt={3}>1. 제목 (필수)</Typography>
+            <TextField
+                fullWidth
+                placeholder="책 제목을 입력하세요"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                sx={{ mt:1 }}
+            />
 
-                {/* 제목 */}
-                <Typography fontWeight={700} mt={2}>1) 제목 *</Typography>
-                <TextField fullWidth name="title" value={form.title} onChange={handleChange}/>
+            {/* 저자 */}
+            <Typography fontSize={22} fontWeight="bold" mt={4}>3. 저자 (필수)</Typography>
+            <TextField
+                fullWidth
+                placeholder="저자를 입력하세요"
+                name="author"
+                value={form.author || ""}
+                onChange={handleChange}
+                sx={{ mt: 1 }}
+            />
 
-                {/* ⭐ 저자 입력 추가 */}
-                <Typography fontWeight={700} mt={3}>2) 저자 *</Typography>
-                <TextField fullWidth name="author" value={form.author} onChange={handleChange}/>
+            {/* 내용 */}
+            <Typography fontSize={22} fontWeight="bold" mt={4}>2. 책 내용 (필수)</Typography>
+            <TextField
+                fullWidth
+                placeholder="책 내용을 입력하세요"
+                name="content"
+                value={form.content}
+                onChange={handleChange}
+                sx={{ mt:1 }}
+            />
 
-                {/* 내용 */}
-                <Typography fontWeight={700} mt={3}>3) 내용 *</Typography>
-                <TextField fullWidth name="content" value={form.content} onChange={handleChange}/>
+            {/* 카테고리 */}
+            <Typography fontSize={22} fontWeight="bold" mt={4}>3. 카테고리</Typography>
+            <TextField
+                select fullWidth
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                sx={{ mt:1 }}
+                SelectProps={{ displayEmpty:true }}
+                placeholder="카테고리를 선택하세요"
+            >
+                <MenuItem value="" disabled>카테고리를 선택하세요</MenuItem>
+                {categories.map(c=> <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
 
-                {/* 카테고리 */}
-                <Typography fontWeight={700} mt={3}>4) 카테고리 *</Typography>
-                <TextField 
-                    select fullWidth
-                    name="category"
-                    value={form.category}
-                    onChange={handleChange}
-                    SelectProps={{ displayEmpty:true }}
-                >
-                    <MenuItem value="" disabled>카테고리를 선택하세요</MenuItem>
-                    {categories.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-                </TextField>
+            {/* 이미지 URL */}
+            <Typography fontSize={22} fontWeight="bold" mt={4}>4. 책표지 URL (선택)</Typography>
+            <TextField
+                fullWidth
+                placeholder="이미지 주소를 입력하세요 (선택)"
+                name="imageUrl"
+                value={form.imageUrl}
+                onChange={handleChange}
+                sx={{ mt:1, mb:5 }}
+            />
 
-                {/* 이미지 */}
-                <Typography fontWeight={700} mt={3}>5) 책 표지 URL (선택)</Typography>
-                <TextField fullWidth name="imageUrl" value={form.imageUrl} onChange={handleChange}/>
+            {/* 등록 버튼 */}
+            <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={handleSubmit}
+                sx={{ py:1.5, fontSize:"18px", borderRadius:"8px", bgcolor:"#00b6b8" }}
+            >
+                등록하기
+            </Button>
 
-                {/* 제출 */}
-                <Button 
-                    fullWidth variant="contained"
-                    sx={{mt:4, py:1.5, fontSize:18, bgcolor:"#00b6b8"}}
-                    onClick={handleSubmit}
-                >
-                    등록하기
-                </Button>
-
-            </Paper>
         </Box>
     );
 }
