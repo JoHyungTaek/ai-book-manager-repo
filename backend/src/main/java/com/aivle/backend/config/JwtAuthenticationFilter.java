@@ -37,9 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 3. 토큰에서 email 꺼내고
             String email = jwtTokenProvider.getEmailFromToken(token);
+            System.out.println("📧 토큰 이메일: " + email);
 
             // 4. DB에서 유저 정보 로드
             var userDetails = userDetailsService.loadUserByUsername(email);
+            System.out.println("🔍 userDetails: " + userDetails);
+
+            if (userDetails == null) {
+                System.out.println("❌ DB에서 해당 이메일 사용자를 찾을 수 없습니다.");
+            }
 
             // 5. 스프링 시큐리티 Authentication 객체 생성
             UsernamePasswordAuthenticationToken authentication =

@@ -54,17 +54,32 @@ public class JwtTokenProvider {
     }
 
     // 토큰 유효성 검사 (만료, 서명 오류 체크)
+//    public boolean validateToken(String token) {
+//        try {
+//            Jwts.parserBuilder()
+//                    .setSigningKey(key)
+//                    .build()
+//                    .parseClaimsJws(token);
+//            return true;
+//        } catch (JwtException | IllegalArgumentException e) {
+//            return false;
+//        }
+//    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
+            System.out.println("✅ JWT 검증 성공");
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("❌ JWT 검증 실패: " + e.getMessage());
             return false;
         }
     }
+
 
     // 토큰에서 email(subject) 꺼내기
     public String getEmailFromToken(String token) {

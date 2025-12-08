@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { 
-  Box, Typography, Button, Divider, TextField, Paper, IconButton 
+import {
+  Box, Typography, Button, Divider, TextField, Paper, IconButton
 } from "@mui/material";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
@@ -14,7 +14,7 @@ export default function BoardDetail(){
   const { id } = useParams();   // /board/:id
 
   const loginUser = "user01";   // 로그인 사용자 (백 연결 후 변경 예정)
-
+//
   // 📌 게시글
   const [post, setPost] = useState({
     id,
@@ -124,12 +124,12 @@ export default function BoardDetail(){
 
       {/* 좋아요/싫어요 */}
       <Box sx={{ display:"flex", alignItems:"center", gap:2, mt:4, mb:3 }}>
-        <ThumbUpAltIcon 
+        <ThumbUpAltIcon
           onClick={handleLike}
           sx={{cursor:"pointer", color:isLiked?"#1e88e5":"inherit"}}
         /> {post.likes}
 
-        <ThumbDownAltIcon 
+        <ThumbDownAltIcon
           onClick={handleDislike}
           sx={{cursor:"pointer", ml:2, color:isDisliked?"#e53935":"inherit"}}
         /> {post.dislikes}
@@ -167,12 +167,12 @@ export default function BoardDetail(){
         ))}
 
         {/* 댓글 작성 */}
-        <TextField 
-          fullWidth 
+        <TextField
+          fullWidth
           value={comment}
           onChange={(e)=>setComment(e.target.value)}
-          placeholder="댓글을 입력하세요..." 
-          sx={{mt:2}} 
+          placeholder="댓글을 입력하세요..."
+          sx={{mt:2}}
         />
         <Button variant="contained" fullWidth sx={{mt:1}} onClick={handleAdd}>
           댓글 등록

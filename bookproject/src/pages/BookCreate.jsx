@@ -1,13 +1,44 @@
 // 2025-12-05 16:34 형택님 마지막 수정으로 복구
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, TextField, Button, MenuItem, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { createBook } from "../api/bookApi"; // 경로는 프로젝트 구조에 맞게 수정
+import axios from "axios";
 
 export default function BookCreate() {
 
     const nav = useNavigate();
+    const [userId, setUserId] = useState(null);
+
+    // 로그인한 사용자 정보 가져오기
+//       useEffect(() => {
+//         const token = localStorage.getItem("accessToken");
+//         console.log("🔑 accessToken:", token);
+//         if (!token) return;
+//
+//         axios.get("http://localhost:8080/auth/me", {
+//           headers: { Authorization: `Bearer ${token}` },
+//         })
+//         .then(res => setUserId(res.data.id))   // 백엔드 UserResponse에 id 포함되어 있어야 함
+//         .catch(err => console.error("유저 정보 조회 실패:", err));
+//       }, []);
+
+    useEffect(() => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      console.log("🔑 accessToken:", token);
+
+      axios.get("http://localhost:8080/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => {
+        console.log("👤 로그인 유저:", res.data);
+        setUserId(res.data.id);
+      })
+      .catch(err => console.error("유저 정보 조회 실패:", err));
+    }, []);
 
     const [form, setForm] = useState({
         title: "",
@@ -34,7 +65,7 @@ export default function BookCreate() {
     }
 
     // userId가 임시로 1이라 가정
-    const userId = 1;
+//     const userId = 1;
 
     async function handleSubmit() {
         if (!form.title || !form.content || !form.category) {

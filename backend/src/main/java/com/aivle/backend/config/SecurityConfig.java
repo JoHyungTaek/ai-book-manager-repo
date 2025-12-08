@@ -44,7 +44,11 @@ public class SecurityConfig {
                                 "/auth/reissue",
                                 "/h2-console/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/me").authenticated()
+                        // ✅ 로그인한 사용자라면 /api/** 요청 허용
+                        .requestMatchers("/api/**").authenticated()
+                        // ❌ 그 외는 모두 차단
+                        .anyRequest().denyAll()
                 )
 
                 // 폼로그인, httpBasic 비활성화
