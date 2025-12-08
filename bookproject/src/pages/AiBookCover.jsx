@@ -1,13 +1,16 @@
 // src/pages/AiBookCover.jsx
 import React, { useState } from "react";
-import { 
-  Container, TextField, Button, Typography, Box, 
-  Select, MenuItem, FormControl, InputLabel, Slider, Paper, CircularProgress
-}  from "@mui/material";
-import { useLocation } from "react-router-dom";
+import {
+  Container,  TextField,  Button,  Typography,  Box,  Select,  MenuItem,  FormControl,
+  InputLabel,  Slider,  Paper,  CircularProgress,  IconButton,  Tooltip,
+} from "@mui/material";
+import { useLocation , useNavigate } from "react-router-dom";
+import ClearIcon from "@mui/icons-material/Clear";
 
 function AiBookCover() {
   const location = useLocation();
+  
+  const navigate = useNavigate();
   const fromState = location.state || {};
 
   // 1. 비활성화된 입력 데이터 (BookUpdate에서 넘어온 값 우선 사용)
@@ -15,7 +18,7 @@ function AiBookCover() {
     title: fromState.title,
     content: fromState.content,
     author: fromState.author,
-    category: fromState.category,
+    category: fromState.category
   });
 
   // API Key (브라우저에서 직접 입력)
@@ -25,7 +28,7 @@ function AiBookCover() {
   const [model, setModel] = useState("dall-e-3");
   const [quality, setQuality] = useState(50);
   const [style, setStyle] = useState("Cyberpunk, Neon, Highly detailed");
-  const [numImages, setNumImages] = useState(3); 
+  const [numImages, setNumImages] = useState(3); // 👉 n값 (사용자 설정)
 
   // 3. 결과 상태
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ function AiBookCover() {
   const [generatedImages, setGeneratedImages] = useState([]); // 여러 장
   const [selectedImage, setSelectedImage] = useState(null); // 선택된 1장
 
-  //  핵심 로직: 프론트엔드 단독 처리 
+  // --- 핵심 로직: 프론트엔드 단독 처리 ---
   const handleGenerate = async () => {
     if (!apiKey) {
       alert("OpenAI API Key를 입력해주세요!");
@@ -41,8 +44,8 @@ function AiBookCover() {
     }
 
     setLoading(true);
-    setGeneratedImages([]);
-    setSelectedImage(null);
+    // 이전 이미지/선택은 유지
+    const oldCount = generatedImages.length;
     setStatusMessage("1단계: 프롬프트 생성 중... (gpt-4o-mini)");
 
     try {
@@ -89,8 +92,8 @@ function AiBookCover() {
         `2단계: 이미지 ${numImages}장 생성 중... (각각 별도 요청)`
       );
 
-      // 🔁 Step 2: 생성된 프롬프트로 이미지 생성 요청을 numImages번 반복 (항상 n:1)
-      const imgs = [];
+      //  Step 2: 생성된 프롬프트로 이미지 생성 요청을 numImages번 반복 (항상 n:1)
+      const newImgs = [];
       for (let i = 0; i < numImages; i++) {
         setStatusMessage(
           `2단계: 이미지 생성 중... (${i + 1}/${numImages})`
@@ -99,7 +102,7 @@ function AiBookCover() {
         const imagePayload = {
           model: model,
           prompt: generatedPrompt,
-          n: 1, // ❗ DALL-E 2/3 제약 회피: 한 번에 1장씩만 요청
+          n: 1, // DALL-E 2/3 제약 회피: 한 번에 1장씩만 요청
           size: "1024x1024",
           response_format: "b64_json",
         };
@@ -124,11 +127,16 @@ function AiBookCover() {
         if (imageData.error) throw new Error(imageData.error.message);
 
         const oneImg = imageData.data[0].b64_json;
-        imgs.push(oneImg);
+        newImgs.push(oneImg);
       }
 
-      setGeneratedImages(imgs);
-      setStatusMessage(`완료! 총 ${imgs.length}장의 후보가 생성되었습니다.`);
+      //  기존 이미지 + 새로 생성된 이미지 이어붙이기
+      setGeneratedImages((prev) => [...prev, ...newImgs]);
+      setStatusMessage(
+        `완료! 이번에 ${newImgs.length}장, 총 ${
+          oldCount + newImgs.length
+        }장의 후보가 있습니다.`
+      );
     } catch (error) {
       console.error(error);
       alert("오류 발생: " + error.message);
@@ -142,8 +150,32 @@ function AiBookCover() {
   const handleSelectImage = (imgB64) => {
     setSelectedImage(imgB64);
     const dataUrl = `data:image/png;base64,${imgB64}`;
-    // 👉 BookUpdate에서 참고할 수 있도록 localStorage에 저장
+    // >> BookUpdate에서 참고할 수 있도록 localStorage에 저장
     localStorage.setItem("aiSelectedCover", dataUrl);
+  };
+
+  // 썸네일 삭제
+  const handleDeleteImage = (index) => {
+    setGeneratedImages((prev) => {
+      if (index < 0 || index >= prev.length) return prev;
+
+      const removed = prev[index];
+      const newArr = prev.filter((_, i) => i !== index);
+
+      // 삭제한 이미지가 선택된 이미지였다면 선택 해제 + localStorage 정리
+      if (removed && removed === selectedImage) {
+        setSelectedImage(null);
+        const stored = localStorage.getItem("aiSelectedCover");
+        if (stored) {
+          const dataUrl = `data:image/png;base64,${removed}`;
+          if (stored === dataUrl) {
+            localStorage.removeItem("aiSelectedCover");
+          }
+        }
+      }
+
+      return newArr;
+    });
   };
 
   return (
@@ -177,36 +209,12 @@ function AiBookCover() {
         </Box>
 
         {/* ReadOnly Section, 도서 정보 */}
-        <Box sx={{ mb: 4, p: 2, bgcolor: "#f5f5f5", borderRadius: 2 }}>
-          <Typography variant="h6" color="textSecondary">
-            📖 도서 정보 (Read Only)
-          </Typography>
-          <TextField
-            fullWidth
-            label="도서 제목"
-            value={bookInfo.title}
-            disabled
-            margin="normal"
-            variant="filled"
-          />
-          <TextField
-            fullWidth
-            label="작가 명"
-            value={bookInfo.author}
-            disabled
-            margin="normal"
-            variant="filled"
-          />
-          <TextField
-            fullWidth
-            label="도서 내용"
-            value={bookInfo.content}
-            disabled
-            multiline
-            rows={2}
-            margin="normal"
-            variant="filled"
-          />
+        <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">📖 도서 정보 (Read Only)</Typography>
+          <TextField fullWidth label="도서 제목" value={bookInfo.title} disabled margin="normal" variant="filled" />
+          <TextField fullWidth label="작가 명" value={bookInfo.author} disabled margin="normal" variant="filled" />
+          <TextField fullWidth label="카테고리" value={bookInfo.category} disabled margin="normal" variant="filled" />
+          <TextField fullWidth label="도서 내용" value={bookInfo.content} disabled multiline rows={2} margin="normal" variant="filled" />
         </Box>
 
         {/* AI Setting Section, 모델, 품질, 스타일, 개수 설정 */}
@@ -321,6 +329,7 @@ function AiBookCover() {
                 <Box
                   key={idx}
                   sx={{
+                    position: "relative",
                     width: 150,
                     height: 150,
                     borderRadius: 2,
@@ -333,6 +342,29 @@ function AiBookCover() {
                   }}
                   onClick={() => handleSelectImage(img)}
                 >
+                  {/* 삭제 버튼 */}
+                  <Tooltip title="이 이미지 삭제" arrow>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        position: "absolute",
+                        top: 4,
+                        right: 4,
+                        zIndex: 2,
+                        bgcolor: "rgba(255,255,255,0.8)",
+                        "&:hover": {
+                          bgcolor: "rgba(255,255,255,1)",
+                        },
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation(); // 썸네일 선택 클릭과 분리
+                        handleDeleteImage(idx);
+                      }}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+
                   <img
                     src={`data:image/png;base64,${img}`}
                     alt={`Generated ${idx + 1}`}
@@ -348,7 +380,7 @@ function AiBookCover() {
           </Box>
         )}
 
-        {/* 선택된 이미지 크게 보여주기 */}
+        {/* 선택된 이미지 크게 보여주기 */}        {/* 선택된 이미지 크게 보여주기 */}
         {selectedImage && (
           <Box sx={{ mt: 5, textAlign: "center" }}>
             <Typography variant="h5" gutterBottom color="success.main">
@@ -363,11 +395,24 @@ function AiBookCover() {
                 boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
               }}
             />
-            <Typography sx={{ mt: 1 }} variant="body2" color="text.secondary">
-              이 이미지는 <b>localStorage("aiSelectedCover")</b> 에 저장되었습니다.
-              <br />
-              (BookUpdate 페이지에서 이 값을 읽어와서 표지로 사용할 수 있어요.)
-            </Typography>
+
+            <Button
+              variant="contained"
+              color="success"
+              sx={{ mt: 2 }}
+              onClick={() => {
+                if (!selectedImage) {
+                  alert("먼저 적용할 이미지를 선택해주세요.");
+                  return;
+                }
+                // 혹시 모르니 한 번 더 저장 (handleSelectImage에서 이미 저장되지만 안전장치)
+                const dataUrl = `data:image/png;base64,${selectedImage}`;
+                localStorage.setItem("aiSelectedCover", dataUrl);
+                navigate(-1); // 바로 이전 페이지(도서 수정)로 돌아가기
+              }}
+            >
+              선택한 이미지 적용하고 돌아가기
+            </Button>
           </Box>
         )}
       </Paper>

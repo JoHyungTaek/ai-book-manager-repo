@@ -16,6 +16,12 @@ export default function BookUpdate() {
     const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
     const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
+    useEffect(() => {
+        const storedCover = localStorage.getItem("aiSelectedCover");
+        if (storedCover) {
+            setForm(prev => ({ ...prev, img: storedCover }));
+        }
+    }, []);
     // 수정 전 기존 데이터 (백엔드 연동 시 GET)
 //     const original = {
 //         title: "책 먹는 여우",
