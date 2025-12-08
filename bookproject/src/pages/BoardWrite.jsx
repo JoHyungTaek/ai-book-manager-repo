@@ -43,26 +43,26 @@ export default function BoardWrite(){
     <Box sx={{ maxWidth:800, margin:"0 auto", mt:6 }}>
       <h2>📌 새 글 작성</h2>
 
-      <TextField 
-        label="제목" 
-        fullWidth 
+      <TextField
+        label="제목"
+        fullWidth
         value={title}
         onChange={e=>setTitle(e.target.value)}
         sx={{ mb:2 }}
       />
 
-      <TextField 
-        label="내용" 
-        fullWidth 
-        multiline 
-        rows={10} 
+      <TextField
+        label="내용"
+        fullWidth
+        multiline
+        rows={10}
         value={content}
         onChange={e=>setContent(e.target.value)}
         sx={{ mb:2 }}
       />
 
-      <Button 
-        variant="contained" 
+      <Button
+        variant="contained"
         fullWidth
         onClick={handleSubmit}
       >

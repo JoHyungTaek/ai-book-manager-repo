@@ -49,3 +49,15 @@ export const deleteBook = async (bookId) => {
     const response = await instance.delete(`/api/books/${bookId}`);
     return response.data;
 };
+
+// 책 좋아요
+export const likeBook = async (bookId) => {
+    const response = await instance.post(`/api/books/${bookId}/like`);
+    return response.data;
+}
+
+// 책 싫어요
+export const dislikeBook = async (bookId) => {
+    const response = await instance.post(`/api/books/${bookId}/dislike`);
+    return response.data;
+}

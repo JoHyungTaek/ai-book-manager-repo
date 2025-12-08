@@ -5,6 +5,7 @@ import com.aivle.backend.book.dto.BookRequestDto;
 import com.aivle.backend.book.service.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
@@ -20,7 +21,7 @@ public class BookController {
         return bookService.insertBook(userId, dto);
     }
 
-    // 책 수정(PATCH)
+    // 책 수정(PUT)
     @PutMapping("/{bookId}")
     public Book updateBook(@PathVariable Long bookId, @RequestBody BookRequestDto dto) {
         return bookService.updateBook(bookId, dto);
@@ -47,5 +48,15 @@ public class BookController {
             e.printStackTrace(); // 콘솔 확인용
             throw new RuntimeException("책 목록 조회 실패", e);
         }
+    }
+
+    @PostMapping("/{bookId}/like")
+    public ResponseEntity<Book> likeBook(@PathVariable Long bookId) {
+        return ResponseEntity.ok(bookService.increaseLikes(bookId));
+    }
+
+    @PostMapping("/{bookId}/dislike")
+    public ResponseEntity<Book> dislikeBook(@PathVariable Long bookId) {
+        return ResponseEntity.ok(bookService.increaseDislikes(bookId));
     }
 }

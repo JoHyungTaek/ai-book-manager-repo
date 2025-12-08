@@ -14,7 +14,7 @@ export default function BookUpdate() {
     const nav = useNavigate();
 //     const [form, setForm] = useState(original);
     const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
-    const categories = ["유아도서", "소설", "과학", "인문", "철학", "자기계발", "기타", "시/에세이"];
+    const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
     // 수정 전 기존 데이터 (백엔드 연동 시 GET)
 //     const original = {
@@ -33,7 +33,7 @@ export default function BookUpdate() {
             author: "",
             category: "",
             content: "",
-            img: "",
+            bookImageUrl: "",
             likes: 0,
             writer: "",
             updated: ""
@@ -112,7 +112,7 @@ export default function BookUpdate() {
                     <TextField fullWidth name="content" value={form.content} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700} mt={1}>책 표지 URL</Typography>
-                    <TextField fullWidth name="img" value={form.img} onChange={handleChange} sx={{mb:4}}/>
+                    <TextField fullWidth name="img" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
 
                     {/* 🔥 OpenAI 키 입력 + 이미지 생성 버튼 */}
                     <Typography fontSize={20} fontWeight={700}>API KEY (이미지 생성 옵션)</Typography>
