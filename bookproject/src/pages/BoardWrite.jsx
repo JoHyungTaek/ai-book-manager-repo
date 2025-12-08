@@ -35,7 +35,7 @@ export default function BoardWrite(){
           nav("/board");  // ← 글 작성 후 게시판 목록으로 이동
       } catch (err) {
           console.error("등록 오류:", err);
-          alert("도서 등록에 실패했습니다.");
+          alert("게시글 등록에 실패했습니다.");
       }
   }
 

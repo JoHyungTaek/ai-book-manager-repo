@@ -3,10 +3,7 @@ package com.aivle.backend.board.domain;
 import com.aivle.backend.book.domain.Book;
 import com.aivle.backend.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
@@ -14,6 +11,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Board {
@@ -30,9 +28,6 @@ public class Board {
 
     private int views; // 조회 수
 
-    @Enumerated(EnumType.STRING)
-    private Type type;
-
     @CreationTimestamp
     private LocalDate createAt;
 
@@ -43,13 +38,4 @@ public class Board {
     @ManyToOne
     @JoinColumn(name = "id", nullable = false)
     private User user;
-
-    // book join
-    @ManyToOne
-    @JoinColumn(name = "book_id")
-    private Book books;
-
-    public enum Type {
-        CB, REVIEW
-    }
 }

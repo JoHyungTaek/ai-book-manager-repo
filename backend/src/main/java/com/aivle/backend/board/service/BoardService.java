@@ -1,26 +1,47 @@
 package com.aivle.backend.board.service;
 
 import com.aivle.backend.board.domain.Board;
-import com.aivle.backend.board.dto.BoardResponseDto;
+import com.aivle.backend.board.dto.BoardRequestDto;
 import com.aivle.backend.board.repository.BoardRepository;
+import com.aivle.backend.book.domain.Book;
+import com.aivle.backend.user.entity.User;
+import com.aivle.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
     private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
     // 생성
-    public Board insertBoard(Board board) {
+    public Board insertBoard(String userId, BoardRequestDto boardDto) {
+        User user = userRepository.findByEmail(userId)
+                .orElseThrow(() -> new RuntimeException("가입되지 않은 이메일입니다."));
+
+        Board board = Board.builder()
+                .user(user)
+                .title(boardDto.getTitle())
+                .content(boardDto.getContent())
+                .build();
         return boardRepository.save(board);
     }
 
+//    public Board insertBoard(Board board) {
+//        return boardRepository.save(board);
+//    }
+
     // 업데이트 (PUT) - 전체 수정
-    public Board updateBoard(Board board) {
+    public Board updateBoard(Long boardId, BoardRequestDto boardDto) {
+        Board board = getBoard(boardId);
+
+        board.setTitle(boardDto.getTitle());
+        board.setContent(boardDto.getContent());
+
         return boardRepository.save(board);
     }
 
@@ -45,7 +66,7 @@ public class BoardService {
     }
 
     // 목록 조회
-    public List<BoardResponseDto> findBoardAll(Board.Type type) {
-        return boardRepository.findBoardByType(type);
+    public Page<Board> findBoardAll(Pageable pageable) {
+        return boardRepository.findAll(pageable);
     }
 }

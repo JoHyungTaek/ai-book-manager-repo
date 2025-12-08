@@ -1,30 +1,28 @@
 package com.aivle.backend.board.controller;
 
 import com.aivle.backend.board.domain.Board;
-import com.aivle.backend.board.dto.BoardResponseDto;
+import com.aivle.backend.board.dto.BoardRequestDto;
 import com.aivle.backend.board.service.BoardService;
+import com.aivle.backend.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @RestController
-@RequestMapping("/boards/{type}")
+@RequestMapping("/boards")
 @RequiredArgsConstructor
 public class BoardController {
     public final BoardService boardService;
 
     @PostMapping
-    public Board createBoard(@PathVariable("type") String type, @RequestBody Board board) {
-        board.setType(Board.Type.valueOf(type.toUpperCase()));
-        // type이 book 일 경우 bookId null 체크
-        return boardService.insertBoard(board);
+    public Board createBoard(@RequestParam String userId, @RequestBody BoardRequestDto board) {
+        return boardService.insertBoard(userId, board);
     }
 
-    @PutMapping
-    public Board updateBoard(@PathVariable("type") String type, @RequestBody Board board) {
-        board.setType(Board.Type.valueOf(type.toUpperCase()));
-        return boardService.updateBoard(board);
+    @PutMapping("/{boardId}")
+    public Board updateBoard(@PathVariable Long boardId, @RequestBody BoardRequestDto boardDto) {
+        return boardService.updateBoard(boardId, boardDto);
     }
 
     @DeleteMapping("/{boardId}")
@@ -39,7 +37,7 @@ public class BoardController {
     }
 
     @GetMapping
-    public List<BoardResponseDto> getBoardList(@PathVariable("type") String type) {
-        return boardService.findBoardAll(Board.Type.valueOf(type.toUpperCase()));
+    public Page<Board> getBoardList(Pageable pageable) {
+        return boardService.findBoardAll(pageable);
     }
 }
