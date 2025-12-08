@@ -1,7 +1,8 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Box, TextField, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import {createBoard} from "../api/boardApi.js";   // ← 이동을 위한 추가
+import {createBoard} from "../api/boardApi.js";
+import axios from "axios";   // ← 이동을 위한 추가
 
 export default function BoardWrite(){
 
@@ -9,6 +10,23 @@ export default function BoardWrite(){
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [userId, setUserId] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("accessToken");
+        if (!token) return;
+
+        console.log("🔑 accessToken:", token);
+
+        axios.get("http://localhost:8080/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => {
+                console.log("👤 로그인 유저:", res.data);
+                setUserId(res.data.email);
+            })
+            .catch(err => console.error("유저 정보 조회 실패:", err));
+    }, []);
 
   async function handleSubmit() {
     if(!title.trim()) return alert("제목을 입력해주세요.");
@@ -18,13 +36,7 @@ export default function BoardWrite(){
           const data = {
               title: title,
               content: content
-              // 책 후기 등록 시 아래 어떤 book에 대한 후기인지 bookId 넘겨줘야 함.
-              // book: {
-              //    bookId: [책 id]
-              // }
           };
-
-          let userId = 'test123@naver.com'; // 현재 로그인 되어 있는 회원 이메일로 설정할 것.
 
           await createBoard(userId, data);
 
