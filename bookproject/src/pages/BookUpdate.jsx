@@ -83,9 +83,9 @@ export default function BookUpdate() {
 
                 {/* 좌측 — 이미지 */}
                 <Box>
-                    {form.img ? (
+                    {form.bookImageUrl ? (
                       <img
-                        src={form.img}
+                        src={form.bookImageUrl}
                         alt={form.bookTitle}
                         style={{ width: "300px", height: "420px", borderRadius: "6px" }}
                       />
@@ -103,7 +103,7 @@ export default function BookUpdate() {
                     </TextField>
 
                     <Typography fontSize={20} fontWeight={700}>제목</Typography>
-                    <TextField fullWidth name="title" value={form.bookTitle} onChange={handleChange} sx={{mb:2}}/>
+                    <TextField fullWidth name="bookTitle" value={form.bookTitle} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700}>저자</Typography>
                     <TextField fullWidth name="author" value={form.author} onChange={handleChange} sx={{mb:2}}/>
@@ -112,7 +112,7 @@ export default function BookUpdate() {
                     <TextField fullWidth name="content" value={form.content} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700} mt={1}>책 표지 URL</Typography>
-                    <TextField fullWidth name="img" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
+                    <TextField fullWidth name="bookImageUrl" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
 
                     {/* 🔥 OpenAI 키 입력 + 이미지 생성 버튼 */}
                     <Typography fontSize={20} fontWeight={700}>API KEY (이미지 생성 옵션)</Typography>
@@ -131,7 +131,7 @@ export default function BookUpdate() {
                         onClick={() => {
                             nav("/ai-book-cover", {
                             state: {
-                                title: form.title,          // 현재 도서 제목
+                                title: form.bookTitle,         // 현재 도서 제목
                                 content: form.content,      // 현재 도서 내용
                                 author: form.author,        // 현재 작가명
                                 category: form.category     // 현재 도서 카테고리

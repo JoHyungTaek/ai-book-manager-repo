@@ -93,6 +93,11 @@ public class BookService {
         book.setBookTitle(dto.getBookTitle());
         book.setCategory(dto.getCategory());
         book.setContent(dto.getContent());
+        book.setAuthor(dto.getAuthor());
+
+        if (dto.getBookImageUrl() != null && !dto.getBookImageUrl().isEmpty()) {
+            book.setBookImageUrl(dto.getBookImageUrl()); // ✅ 이미지 URL도 수정 가능하게
+        }
 
         return bookRepository.save(book);
     }
