@@ -21,9 +21,10 @@ public class ReplyService {
     private final UserRepository userRepository;
 
     // 생성
-    public ReplyResponseDto insertReply(String userId, ReplyRequestDto replyRequestDto) {
-        User user = userRepository.findByEmail(userId)
-                .orElseThrow(() -> new RuntimeException("가입되지 않은 이메일입니다."));
+    public ReplyResponseDto insertReply(Long userId, ReplyRequestDto replyRequestDto) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
         Board board = boardRepository.findById(replyRequestDto.getBoardId())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 게시글입니다."));
