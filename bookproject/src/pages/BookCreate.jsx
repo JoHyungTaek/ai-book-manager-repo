@@ -89,6 +89,14 @@ export default function BookCreate() {
         } catch (err) {
             console.error("등록 오류:", err);
             alert("도서 등록에 실패했습니다.");
+            if (form.bookImageUrl && form.bookImageUrl.length > 1024) {
+               alert(
+                 `책 표지 URL이 너무 깁니다.\n\n` +
+                 `현재 길이: ${form.bookImageUrl.length}자\n` +
+                 `허용 최대: 1000자\n\n` +
+                 `▶ URL을 줄이거나, 다른 방식(직접 업로드 등)으로 저장해 주세요.`
+                   );            
+                }
         }
     }
 
