@@ -59,7 +59,7 @@ export default function BookUpdate() {
                 }
             } catch (err) {
                 console.error("도서 불러오기 실패:", err);
-                alert("도서 정보를 가져오지 못했습니다.");
+                alert("도서 정보를 가져오지 못했습니다."); 
             }
         };
         loadBook();
@@ -79,6 +79,8 @@ export default function BookUpdate() {
 
             const updatedData = await fetchBookDetail(id);
             setForm(updatedData);
+            
+            localStorage.removeItem("aiSelectedCover");
 
             nav(`/book/${id}`);
         } catch (err) {
@@ -86,6 +88,8 @@ export default function BookUpdate() {
             alert("수정 중 오류가 발생했습니다.");
         }
     };
+
+    
 
     return(
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:4 }}>

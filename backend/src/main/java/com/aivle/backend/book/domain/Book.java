@@ -38,6 +38,7 @@ public class Book {
     @Column(nullable = false)
     private String author;
 
+    @Column(length = 1024)
     private String bookImageUrl;
 
     private String writer; // 작성자 닉네임
