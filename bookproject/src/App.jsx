@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
+import MyPage from "./pages/MyPage";   // ✅ 내 정보 페이지 추가
 
 // Route Guard 추가
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -73,6 +74,15 @@ function App() {
                         <Route path="/board/update/:id" element={
                             <ProtectedRoute><BoardUpdate /></ProtectedRoute>
                         }/>
+
+                        <Route
+                            path="/me"
+                            element={
+                                <ProtectedRoute>
+                                    <MyPage />
+                                </ProtectedRoute>
+                            }
+                        />
                         
 
                     </Routes>
