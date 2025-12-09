@@ -45,7 +45,7 @@ export default function BookCreate() {
         author: "",
         content: "",
         category: "",
-        imageUrl: "",
+        bookImageUrl: "",
     });
 
     const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
@@ -79,7 +79,7 @@ export default function BookCreate() {
             author: form.author,
             content: form.content,
             category: form.category,
-            bookImageUrl: form.imageUrl,
+            bookImageUrl: form.bookImageUrl,
         };
 
             await createBook(userId, data);
@@ -152,8 +152,8 @@ export default function BookCreate() {
             <TextField
                 fullWidth
                 placeholder="이미지 주소를 입력하세요 (선택)"
-                name="imageUrl"
-                value={form.imageUrl}
+                name="bookImageUrl"
+                value={form.bookImageUrl}
                 onChange={handleChange}
                 sx={{ mt:1, mb:5 }}
             />

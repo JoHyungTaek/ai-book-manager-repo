@@ -35,6 +35,7 @@ public class BookService {
                 .author(dto.getAuthor())
                 .category(dto.getCategory())
                 .content(dto.getContent())
+                .bookImageUrl(dto.getBookImageUrl())
                 .build();
 
         return bookRepository.save(book);
@@ -62,6 +63,7 @@ public class BookService {
         book.setBookTitle(dto.getBookTitle());
         book.setCategory(dto.getCategory());
         book.setContent(dto.getContent());
+        book.setBookImageUrl(dto.getBookImageUrl());
 
         return bookRepository.save(book);
     }

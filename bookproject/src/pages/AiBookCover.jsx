@@ -67,7 +67,7 @@ function AiBookCover() {
               },
               {
                 role: "user",
-                content: `Create a detailed image generation prompt for a front page of book cover.
+                content: `Create a detailed image generation prompt for a front cover of a book.
                 Book Title: '${bookInfo.bookTitle}'
                 Author: '${bookInfo.author}'
                 Content Summary: '${bookInfo.content}'
@@ -403,9 +403,7 @@ function AiBookCover() {
                   return;
                 }
                 // 한 번 더 저장 (안전장치) - URL 그대로
-                if (bookId) {
-                  localStorage.setItem(`aiSelectedCover_${bookId}`, selectedImage);
-                }
+                localStorage.setItem("aiSelectedCover", selectedImage);
                 navigate(-1); // 바로 이전 페이지(도서 수정)로 돌아가기
               }}
             >

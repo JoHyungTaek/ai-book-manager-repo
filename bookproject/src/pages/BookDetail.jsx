@@ -76,7 +76,7 @@ export default function BookDetail() {
                 {/* ===== 이미지 ===== */}
                 <Box>
                     <img
-                        src={book.img}
+                        src={book.bookImageUrl}
                         alt={book.bookTitle}
                         style={{ width:"300px", height:"420px", borderRadius:"6px" }}
                     />

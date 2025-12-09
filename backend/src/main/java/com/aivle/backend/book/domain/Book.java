@@ -35,6 +35,7 @@ public class Book {
     @Column(nullable = false)
     private String author;
 
+    @Column(length = 1024)
     private String bookImageUrl;
     
     private int likes; // 좋아요 수
