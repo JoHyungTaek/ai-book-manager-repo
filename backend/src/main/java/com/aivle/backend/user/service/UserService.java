@@ -4,6 +4,7 @@ import com.aivle.backend.config.JwtTokenProvider;
 import com.aivle.backend.user.dto.LoginRequest;
 import com.aivle.backend.user.dto.LoginResponse;
 import com.aivle.backend.user.dto.SignupRequest;
+import com.aivle.backend.user.dto.UpdateUserRequest;   // ✅ 추가
 import com.aivle.backend.user.dto.UserResponse;
 import com.aivle.backend.user.entity.User;
 import com.aivle.backend.user.repository.UserRepository;
@@ -66,33 +67,33 @@ public class UserService {
         // 리프레시 토큰을 DB에 저장
         user.setRefreshToken(refresh);
 
-//        return new LoginResponse(access, refresh);
         // ✅ 닉네임도 함께 응답으로 반환
         return LoginResponse.builder()
                 .accessToken(access)
                 .refreshToken(refresh)
-                .nickname(user.getNickname())  // ✅ 추가
+                .nickname(user.getNickname())
                 .build();
     }
 
-    // 리프레시 토큰으로 재발급
+    // 토큰 재발급
     @Transactional
     public LoginResponse reissue(String refreshToken) {
 
-        // 1. 토큰 형식 / 만료 체크
+        // 1. refreshToken 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new RuntimeException("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        // 2. 토큰에서 email 꺼내기
+        // 2. 토큰에서 email 추출
         String email = jwtTokenProvider.getEmailFromToken(refreshToken);
 
-        // 3. 유저 조회
+        // 3. DB에서 유저 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 4. DB에 저장된 refreshToken 과 일치하는지 확인
-        if (!refreshToken.equals(user.getRefreshToken())) {
+        // 4. 저장된 refreshToken 과 비교
+        if (user.getRefreshToken() == null ||
+                !user.getRefreshToken().equals(refreshToken)) {
             throw new RuntimeException("저장된 리프레시 토큰과 일치하지 않습니다.");
         }
 
@@ -109,12 +110,45 @@ public class UserService {
         // 6. 새 refresh 토큰 저장
         user.setRefreshToken(newRefresh);
 
-        //return new LoginResponse(newAccess, newRefresh);
         return LoginResponse.builder()
                 .accessToken(newAccess)
                 .refreshToken(newRefresh)
-                .nickname(user.getNickname())  // ✅ 추가
+                .nickname(user.getNickname())
                 .build();
+    }
+
+    // ✅ 내 정보 수정 (닉네임 + 비밀번호 변경)
+    @Transactional
+    public UserResponse updateMyInfo(String email, UpdateUserRequest req) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // --- 닉네임 변경 ---
+        if (req.getNickname() != null
+                && !req.getNickname().isBlank()
+                && !req.getNickname().equals(user.getNickname())) {
+
+            // 닉네임 중복 체크
+            if (userRepository.existsByNickname(req.getNickname())) {
+                throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+            }
+
+            user.setNickname(req.getNickname());
+        }
+
+        // --- 비밀번호 변경 ---
+        if (req.getNewPassword() != null && !req.getNewPassword().isBlank()) {
+
+            // 현재 비밀번호 검증
+            if (req.getCurrentPassword() == null
+                    || !passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
+                throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+            }
+
+            user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        }
+
+        return new UserResponse(user);
     }
 
     // 로그아웃 : refreshToken 제거

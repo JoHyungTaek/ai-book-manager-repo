@@ -4,8 +4,6 @@ import com.aivle.backend.security.CustomUserDetails;
 import com.aivle.backend.user.dto.*;
 import com.aivle.backend.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,32 +46,31 @@ public class AuthController {
      * 내 정보 조회
      * GET /auth/me
      */
-//    @GetMapping("/me")
-//    public UserResponse me(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
-//        return userService.getMyInfo(user.getUsername());
-//    }
-
     @GetMapping("/me")
     public UserResponse me(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return userService.getMyInfo(userDetails.getUsername());
     }
 
-//    @GetMapping("/me")
-//    public ResponseEntity<?> me(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
-//        if (user == null) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body("인증 정보가 없습니다.");
-//        }
-//        return ResponseEntity.ok(userService.getMyInfo(user.getUsername()));
-//    }
-
+    /**
+     * 내 정보 수정
+     * PUT /auth/me
+     * - 닉네임 변경
+     * - 비밀번호 변경(선택)
+     */
+    @PutMapping("/me")
+    public UserResponse updateMe(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody UpdateUserRequest request
+    ) {
+        return userService.updateMyInfo(userDetails.getUsername(), request);
+    }
 
     /**
      * 로그아웃
      * POST /auth/logout
      */
     @PostMapping("/logout")
-    public void logout(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
-        userService.logout(user.getUsername());
+    public void logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        userService.logout(userDetails.getUsername());
     }
 }
