@@ -16,6 +16,7 @@ import BoardList from "./pages/BoardList";
 import BoardDetail from "./pages/BoardDetail";
 import BoardWrite from "./pages/BoardWrite";
 import BoardUpdate from "./pages/BoardUpdate";  // 이서영 추가
+import UserUpdate from "./pages/UserUpdate.jsx"; // 조형택 추가
 
 function App() {
     return (
@@ -69,11 +70,23 @@ function App() {
                             <ProtectedRoute><BoardUpdate /></ProtectedRoute>
                         }/>
 
+
+                        <Route
+                            path="/user/update"
+                            element={
+                                <ProtectedRoute>
+                                    <UserUpdate />
+                                </ProtectedRoute>
+                            }
+                        />  {/*조형택 추가(회원 정보 수정)*/}
+
                     </Routes>
                 </div>
             </div>
         </BrowserRouter>
     );
 }
+
+
 
 export default App;

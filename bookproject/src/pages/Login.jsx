@@ -1,5 +1,3 @@
-// 2025-12-05 16:52 소진님 마지막 수정으로 복구
-
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +13,7 @@ export default function Login() {
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
+
 
     const login = async () => {
         if (!form.email || !form.pw) {
@@ -37,10 +36,20 @@ export default function Login() {
             if (!res.ok) {
                 const data = await res.json().catch(() => null);
                 alert(data?.message || "로그인에 실패했습니다.");
-                return;               // ❗ 실패면 여기서 끝, 페이지 안 넘어감
+                return; // 실패 시 여기서 종료
             }
 
             const data = await res.json();
+
+
+            //    - ProtectedRoute, Header 등에서 로그인 여부 확인용
+            const loginUser = {
+                id: data.userId ?? data.id ?? null,
+                email: data.email ?? form.email,
+                nickname: data.nickname ?? data.nickName ?? null,
+            };
+            localStorage.setItem("loginUser", JSON.stringify(loginUser));
+
 
             // 토큰 내려오면 저장
             if (data.accessToken) {
@@ -51,7 +60,7 @@ export default function Login() {
             }
 
             alert("로그인 성공!");
-            nav("/main");           // 메인 페이지로 이동
+            nav("/main"); // 메인 페이지로 이동
         } catch (err) {
             console.error(err);
             alert("서버와 통신에 실패했습니다.");
@@ -78,39 +87,33 @@ export default function Login() {
                     textAlign: "center",
                 }}
             >
-                <Typography fontSize={28} fontWeight="bold" mb={1}>
-                    📚 BOOK LOGIN
-                </Typography>
-                <Typography fontSize={14} mb={4} color="#666">
-                    도서 관리 시스템에 로그인하세요
+                <Typography variant="h5" sx={{ mb: 4, fontWeight: 700 }}>
+                    BOOK LOGIN
                 </Typography>
 
                 <TextField
                     fullWidth
                     label="이메일"
                     name="email"
-                    variant="outlined"
-                    sx={{ mb: 2 }}
                     value={form.email}
                     onChange={handleChange}
+                    margin="normal"
                 />
-
                 <TextField
                     fullWidth
                     label="비밀번호"
-                    name="pw"
                     type="password"
-                    variant="outlined"
-                    sx={{ mb: 4 }}
+                    name="pw"
                     value={form.pw}
                     onChange={handleChange}
+                    margin="normal"
                 />
 
                 <Button
                     fullWidth
                     variant="contained"
-                    sx={{ py: 1.5, fontSize: 18, bgcolor: "#00b6b8" }}
-                    onClick={login}
+                    sx={{ mt: 3, py: 1.5 }}
+                    onClick={login} // ✅ 로그인 함수 연결
                 >
                     로그인
                 </Button>

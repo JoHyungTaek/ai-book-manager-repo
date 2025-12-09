@@ -37,7 +37,16 @@ export default function Header() {
                 {/* 🔥 로그인 및 회원가입 페이지에서는 메뉴 숨김 */}
                 {!isAuthPage && (
                     <Box sx={{ display:"flex", alignItems:"center", gap:2 }}>
-                       
+
+                        {loginUser && (
+                            <Button
+                                color="inherit"
+                                onClick={() => nav("/user/Update")}
+                                sx={{ fontSize: "0.9rem" }}
+                            >
+                                내 정보
+                            </Button>
+                        )} {/*조형택 추가*/}
 
                         <Button color="inherit" onClick={() => nav("/book/create")}>책 등록</Button>
                         <Button color="inherit" onClick={() => nav("/books")}>책 목록</Button>
@@ -45,7 +54,7 @@ export default function Header() {
                         
                          {loginUser && (
                             <Typography sx={{fontSize:"15px", fontWeight:"500"}}>
-                                안녕하세요 {loginUser.nickname ?? loginUser.id}님!
+                                안녕하세요{loginUser.nickname ?? loginUser.id}!
                             </Typography>
                         )}
                         <Button color="inherit" onClick={logout}>로그아웃</Button>
