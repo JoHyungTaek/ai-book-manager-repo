@@ -13,30 +13,39 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReplyController {
 
-    public final ReplyService replyService;
+    private final ReplyService replyService;
 
-    // 생성
+    // 댓글 생성
     @PostMapping
-    public ReplyResponseDto reply(@RequestParam String userId, @RequestBody ReplyRequestDto replyRequestDto) {
+    public ReplyResponseDto createReply(
+            @RequestParam Long userId,
+            @RequestBody ReplyRequestDto replyRequestDto
+    ) {
         return replyService.insertReply(userId, replyRequestDto);
     }
 
-    // 수정
+    // 댓글 수정
     @PutMapping("/{replyId}")
-    public ReplyResponseDto updateReply(@PathVariable Long replyId, @RequestBody ReplyRequestDto replyRequestDto) {
+    public ReplyResponseDto updateReply(
+            @PathVariable Long replyId,
+            @RequestBody ReplyRequestDto replyRequestDto
+    ) {
         return replyService.updateReply(replyId, replyRequestDto);
     }
 
-    // 삭제
+    // 댓글 삭제
     @DeleteMapping("/{replyId}")
     public String deleteReply(@PathVariable Long replyId) {
         replyService.deleteReply(replyId);
         return "댓글이 삭제되었습니다.";
     }
 
-    // 목록 조회
+    // 댓글 목록 조회
     @GetMapping("/{boardId}")
-    public Page<ReplyResponseDto> getReplyList(@PathVariable Long boardId, Pageable pageable) {
+    public Page<ReplyResponseDto> getReplyList(
+            @PathVariable Long boardId,
+            Pageable pageable
+    ) {
         return replyService.findReplyAll(boardId, pageable);
     }
 }
