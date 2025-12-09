@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box, Typography, Button, Divider, TextField, Paper, IconButton
 } from "@mui/material";
@@ -47,17 +47,36 @@ export default function BoardDetail() {
   // ============================
   // 게시글 상세
   // ============================
-  useEffect(() => {
-    const loadPost = async () => {
-      try {
-        const data = await fetchBoardDetail(id);
-        setPost(data);
-      } catch (err) {
-        console.error("게시글 불러오기 실패:", err);
-      }
-    };
-    loadPost();
-  }, [id]);
+//   useEffect(() => {
+//     const loadPost = async () => {
+//       console.log("🔍 fetchBoardDetail 호출");
+//       try {
+//         const data = await fetchBoardDetail(id);
+//         setPost(data);
+//       } catch (err) {
+//         console.error("게시글 불러오기 실패:", err);
+//       }
+//     };
+//     loadPost();
+//   }, [id]);
+
+    const didFetch = useRef(false);
+
+    useEffect(() => {
+      if (didFetch.current) return;
+      didFetch.current = true;
+
+      const loadPost = async () => {
+        try {
+          const data = await fetchBoardDetail(id);
+          setPost(data);
+        } catch (err) {
+          console.error("게시글 불러오기 실패:", err);
+        }
+      };
+
+      loadPost();
+    }, [id]);
 
   // ============================
   // 댓글 목록 로드

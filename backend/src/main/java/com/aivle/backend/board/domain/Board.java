@@ -7,6 +7,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,10 +34,14 @@ public class Board {
     private LocalDate createAt;
 
     @UpdateTimestamp
-    private LocalDate updateAt;
+    private LocalDate updatedAt;
 
     // user join
     @ManyToOne
     @JoinColumn(name = "id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Reply> replies = new ArrayList<>();
 }
