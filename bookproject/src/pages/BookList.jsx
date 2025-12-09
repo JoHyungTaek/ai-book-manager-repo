@@ -80,8 +80,8 @@ export default function BookList() {
                     {/* 이미지 */}
                     <CardMedia
                         component="img"
-                        src={book.img}
-                        alt={book.title}
+                        src={book.bookImageUrl}
+                        alt={book.bookTitle}
                         sx={{ width:120, height:160, borderRadius:2, mr:3 }}
                     />
 

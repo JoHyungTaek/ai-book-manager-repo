@@ -18,10 +18,10 @@ public class JwtTokenProvider {
     private String secret;
 
     @Value("${jwt.access-expiration-ms}")
-    private long accessTokenValidity;   // 액세스 토큰 유효시간(ms)
+    private long accessTokenValidity;
 
     @Value("${jwt.refresh-expiration-ms}")
-    private long refreshTokenValidity;  // 리프레시 토큰 유효시간(ms)
+    private long refreshTokenValidity;
 
     private Key key;
 
@@ -30,55 +30,58 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // ==========================
-    // 액세스 토큰 발급
-    // ==========================
+    // AccessToken 생성 (email + role 포함)
     public String createAccessToken(String email, String role) {
+        return buildToken(email, role, accessTokenValidity);
+    }
+
+    // RefreshToken 생성 (email + role 포함)
+    public String createRefreshToken(String email, String role) {
+        return buildToken(email, role, refreshTokenValidity);
+    }
+
+    private String buildToken(String email, String role, long validityMs) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + accessTokenValidity);
+        Date expiry = new Date(now.getTime() + validityMs);
 
         return Jwts.builder()
-                .setSubject(email)
-                .claim("role", role)
+                .setSubject(email)           // email
+                .claim("role", role)         // ROLE_USER, ROLE_ADMIN 등
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // ==========================
-    // 리프레시 토큰 발급
-    // ==========================
-    public String createRefreshToken() {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + refreshTokenValidity);
+    // 토큰 유효성 검사 (만료, 서명 오류 체크)
+//    public boolean validateToken(String token) {
+//        try {
+//            Jwts.parserBuilder()
+//                    .setSigningKey(key)
+//                    .build()
+//                    .parseClaimsJws(token);
+//            return true;
+//        } catch (JwtException | IllegalArgumentException e) {
+//            return false;
+//        }
+//    }
 
-        return Jwts.builder()
-                .setSubject("refresh")
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    // ==========================
-    // 토큰 유효성 검증
-    // ==========================
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
+            System.out.println("✅ JWT 검증 성공");
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("❌ JWT 검증 실패: " + e.getMessage());
             return false;
         }
     }
 
-    // ==========================
-    // 토큰에서 이메일 꺼내기
-    // ==========================
+
+    // 토큰에서 email(subject) 꺼내기
     public String getEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)

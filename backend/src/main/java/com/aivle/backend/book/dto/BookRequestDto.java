@@ -15,5 +15,6 @@ public class BookRequestDto {
     private String content;
     private String author;
     private String bookImageUrl;
+//    private String writer;
 }
 

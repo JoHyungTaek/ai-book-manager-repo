@@ -1,4 +1,4 @@
-package com.aivle.backend.user.security;
+package com.aivle.backend.security;
 
 import com.aivle.backend.user.entity.User;
 import com.aivle.backend.user.repository.UserRepository;

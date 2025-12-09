@@ -1,4 +1,4 @@
-package com.aivle.backend.user.security;
+package com.aivle.backend.security;
 
 import com.aivle.backend.user.entity.User;
 import lombok.Getter;
@@ -16,6 +16,10 @@ public class CustomUserDetails implements UserDetails {
 
     public CustomUserDetails(User user) {
         this.user = user;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     @Override

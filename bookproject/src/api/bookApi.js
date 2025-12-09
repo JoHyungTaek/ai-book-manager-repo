@@ -6,6 +6,18 @@ const instance = axios.create({
     baseURL: "http://localhost:8080", // 백엔드 주소
 });
 
+//  모든 요청에 Authorization 헤더 자동 추가
+instance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default instance;
 
 // 도서 등록
@@ -35,5 +47,17 @@ export const updateBook = async (bookId, data) => {
 // 도서 삭제
 export const deleteBook = async (bookId) => {
     const response = await instance.delete(`/api/books/${bookId}`);
+    return response.data;
+};
+
+// 책 좋아요
+export const likeBook = async (bookId) => {
+    const response = await instance.post(`/api/books/${bookId}/like?liked=true`);
+    return response.data;
+};
+
+// 책 싫어요
+export const dislikeBook = async (bookId) => {
+    const response = await instance.post(`/api/books/${bookId}/like?liked=false`);
     return response.data;
 };

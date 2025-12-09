@@ -6,13 +6,14 @@ import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
-import { fetchBookDetail, deleteBook } from "../api/bookApi";
+import { fetchBookDetail, deleteBook, likeBook, dislikeBook } from "../api/bookApi";
 
 export default function BookDetail() {
 
     const nav = useNavigate();
     const { id } = useParams(); // URL의 /book/:id 가져옴
     const [book, setBook] = useState(null);
+    const [isOwner, setIsOwner] = useState(false);
 
     // 📌 임시 도서데이터 (백엔드 연결 전까지)
 //     const book = {
@@ -27,19 +28,43 @@ export default function BookDetail() {
 //         updated:"2025-12-04 16:11",
 //     };
 
-    // 페이지 로드 시 백엔드에서 도서 상세정보 가져오기
+
     useEffect(() => {
-        const loadBook = async () => {
-            try {
-                const data = await fetchBookDetail(id);
-                setBook(data);
-            } catch (err) {
-                console.error("도서 상세정보 로드 실패:", err);
-                alert("도서 정보를 불러오지 못했습니다.");
-            }
-        };
-        loadBook();
+            const loadBook = async () => {
+                try {
+                    const data = await fetchBookDetail(id);
+                    setBook(data);
+
+                    // ✅ 현재 로그인한 사용자 닉네임과 비교
+                    const currentNickname = localStorage.getItem("nickname");
+
+                    console.log("현재 로그인 닉네임:", currentNickname);
+                    console.log("책 작성자 닉네임:", data.writer);
+
+                    if (currentNickname && data.writer === currentNickname) {
+                        setIsOwner(true);
+                    }
+                } catch (err) {
+                    console.error("도서 상세정보 로드 실패:", err);
+                    alert("도서 정보를 불러오지 못했습니다.");
+                }
+            };
+            loadBook();
     }, [id]);
+
+//     // 페이지 로드 시 백엔드에서 도서 상세정보 가져오기
+//     useEffect(() => {
+//         const loadBook = async () => {
+//             try {
+//                 const data = await fetchBookDetail(id);
+//                 setBook(data);
+//             } catch (err) {
+//                 console.error("도서 상세정보 로드 실패:", err);
+//                 alert("도서 정보를 불러오지 못했습니다.");
+//             }
+//         };
+//         loadBook();
+//     }, [id]);
 
     // 데이터 로딩 중 표시
     if (!book) {
@@ -76,7 +101,7 @@ export default function BookDetail() {
                 {/* ===== 이미지 ===== */}
                 <Box>
                     <img
-                        src={book.img}
+                        src={book.bookImageUrl}
                         alt={book.bookTitle}
                         style={{ width:"300px", height:"420px", borderRadius:"6px" }}
                     />
@@ -111,12 +136,44 @@ export default function BookDetail() {
                     </Box>
 
                     {/* 좋아요/싫어요 + 작성자 */}
+{/*                     <Box sx={{ display:"flex", alignItems:"center", gap:1, mt:1 }}> */}
+{/*                         <ThumbUpAltIcon /> {book.likes} */}
+{/*                         <ThumbDownAltIcon sx={{ml:2}} /> */}
+{/*                         <PersonIcon sx={{ml:2, opacity:0.7}} /> {book.writer} */}
+{/*                     </Box> */}
                     <Box sx={{ display:"flex", alignItems:"center", gap:1, mt:1 }}>
-                        <ThumbUpAltIcon /> {book.likes}
-                        <ThumbDownAltIcon sx={{ml:2}} />
-                        <PersonIcon sx={{ml:2, opacity:0.7}} /> {book.writer}
-                    </Box>
+                      <ThumbUpAltIcon
+                       sx={{ cursor: "pointer" }}
+                       onClick={async () => {
+                           try {
+                               const updated = await likeBook(id);
+                               setBook(updated);
+                           } catch (err) {
+                               console.error("좋아요 실패:", err);
+                               alert("좋아요 처리 중 오류가 발생했습니다.");
+                           }
+                       }}
+                      />
+                      {book.likes}
 
+                      <ThumbDownAltIcon
+                       sx={{ ml:2, cursor: "pointer" }}
+                       onClick={async () => {
+                           try {
+                               const updated = await dislikeBook(id);
+                               setBook(updated);
+                           } catch (err) {
+                               console.error("싫어요 실패:", err);
+                               alert("싫어요 처리 중 오류가 발생했습니다.");
+                           }
+                       }}
+                      />
+                      {book.dislikes}
+
+                       <PersonIcon sx={{ ml:2, opacity:0.7 }} /> {book.writer}
+{/*                         <PersonIcon sx={{ ml:2, opacity:0.7 }} /> {book.user?.nickname} */}
+
+                    </Box>
                 </Box>
             </Box>
 
@@ -128,6 +185,7 @@ export default function BookDetail() {
                     variant="outlined"
                     sx={{width:200, py:1.4, fontSize:"18px", borderColor:"#1a9bff"}}
                     onClick={goUpdate}
+                    disabled={!isOwner} // ✅ 비활성화
                 >
                     수정하기
                 </Button>
@@ -136,6 +194,7 @@ export default function BookDetail() {
                     variant="outlined"
                     sx={{width:200, py:1.4, fontSize:"18px", borderColor:"#ff4b4b", color:"#ff4b4b"}}
                     onClick={handleDelete}
+                    disabled={!isOwner} // ✅ 비활성화
                 >
                     삭제하기
                 </Button>

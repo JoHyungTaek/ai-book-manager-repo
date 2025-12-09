@@ -13,9 +13,10 @@ export default function BookUpdate() {
     const { id } = useParams();
     const nav = useNavigate();
 //     const [form, setForm] = useState(original);
-    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
-    const categories = ["유아도서", "소설", "과학", "인문", "철학", "자기계발", "기타", "시/에세이"];
+//    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
+    const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
+    
     // 수정 전 기존 데이터 (백엔드 연동 시 GET)
 //     const original = {
 //         title: "책 먹는 여우",
@@ -28,12 +29,12 @@ export default function BookUpdate() {
 //         updated: "2025-12-04 16:11"
 //     };
 
-    const [form, setForm] = useState({
+        const [form, setForm] = useState({
             bookTitle: "",
             author: "",
             category: "",
             content: "",
-            img: "",
+            bookImageUrl: "",
             likes: 0,
             writer: "",
             updated: ""
@@ -43,18 +44,32 @@ export default function BookUpdate() {
         const loadBook = async () => {
             try {
                 const data = await fetchBookDetail(id);
-                setForm(data);
+
+                // 여기에서 localStorage 값을 같이 반영
+                const storedCover = localStorage.getItem("aiSelectedCover");
+
+                if (storedCover) {
+                    setForm({
+                        ...data,
+                        // 서버에서 온 값 대신, AI로 선택한 이미지를 우선 사용
+                        bookImageUrl: storedCover,
+                    });
+                } else {
+                    setForm(data);
+                }
             } catch (err) {
                 console.error("도서 불러오기 실패:", err);
-                alert("도서 정보를 가져오지 못했습니다.");
+                alert("도서 정보를 가져오지 못했습니다."); 
             }
         };
         loadBook();
     }, [id]);
 
+
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
+    
 
     // 저장
     const save = async () => {
@@ -64,13 +79,25 @@ export default function BookUpdate() {
 
             const updatedData = await fetchBookDetail(id);
             setForm(updatedData);
+            
+            localStorage.removeItem("aiSelectedCover");
 
             nav(`/book/${id}`);
         } catch (err) {
             console.error("도서 수정 실패:", err);
             alert("수정 중 오류가 발생했습니다.");
+            if (form.bookImageUrl && form.bookImageUrl.length > 1024) {
+               alert(
+                 `책 표지 URL이 너무 깁니다.\n\n` +
+                 `현재 길이: ${form.bookImageUrl.length}자\n` +
+                 `허용 최대: 1000자\n\n` +
+                 `▶ URL을 줄이거나, 다른 방식(직접 업로드 등)으로 저장해 주세요.`
+                   );            
+                }
         }
     };
+
+    
 
     return(
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:4 }}>
@@ -83,9 +110,9 @@ export default function BookUpdate() {
 
                 {/* 좌측 — 이미지 */}
                 <Box>
-                    {form.img ? (
+                    {form.bookImageUrl ? (
                       <img
-                        src={form.img}
+                        src={form.bookImageUrl}
                         alt={form.bookTitle}
                         style={{ width: "300px", height: "420px", borderRadius: "6px" }}
                       />
@@ -103,7 +130,7 @@ export default function BookUpdate() {
                     </TextField>
 
                     <Typography fontSize={20} fontWeight={700}>제목</Typography>
-                    <TextField fullWidth name="title" value={form.bookTitle} onChange={handleChange} sx={{mb:2}}/>
+                    <TextField fullWidth name="bookTitle" value={form.bookTitle} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700}>저자</Typography>
                     <TextField fullWidth name="author" value={form.author} onChange={handleChange} sx={{mb:2}}/>
@@ -112,27 +139,34 @@ export default function BookUpdate() {
                     <TextField fullWidth name="content" value={form.content} onChange={handleChange} sx={{mb:2}}/>
 
                     <Typography fontSize={20} fontWeight={700} mt={1}>책 표지 URL</Typography>
-                    <TextField fullWidth name="img" value={form.img} onChange={handleChange} sx={{mb:4}}/>
+                    <TextField fullWidth name="bookImageUrl" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
 
-                    {/* 🔥 OpenAI 키 입력 + 이미지 생성 버튼 */}
-                    <Typography fontSize={20} fontWeight={700}>API KEY (이미지 생성 옵션)</Typography>
-                    <TextField
+                    
+
+                    <Button
+                        variant="outlined"
                         fullWidth
-                        placeholder="OpenAI API 키 입력"
-                        value={apiKey}
-                        onChange={(e)=>setApiKey(e.target.value)}
-                        sx={{mt:1, mb:2}}
-                    />
-
-                    <Button variant="outlined" fullWidth sx={{py:1.4, mb:3}}>
-                        🔥 이미지 생성하기 (기능은 미구현)
+                        sx={{ py: 1.4, mb: 3 }}
+                        onClick={() => {
+                            nav("/book/update/ai-book-cover", {
+                              state: {
+                                bookId: id,
+                                bookTitle: form.bookTitle,  // 현재 도서 제목
+                                content: form.content,      // 현재 도서 내용
+                                author: form.author,        // 현재 작가명
+                                category: form.category     // 현재 도서 카테고리
+                              }
+                            });
+                        }}
+                        >
+                        🔥 이미지 생성하기
                     </Button>
 
                     {/* 좋아요/작성자 표시(수정불가 영역) */}
-                    <Box sx={{ opacity:.6, display:"flex", alignItems:"center", gap:1 }}>
-                        <ThumbUpAltIcon/> {form.likes}
-                        <ThumbDownAltIcon sx={{ml:2}}/>
-                        <PersonIcon sx={{ml:2}}/> {form.writer}
+                    <Box sx={{ opacity: 0.6, display: "flex", alignItems: "center", gap: 1 }}>
+                      <ThumbUpAltIcon /> {form.likes}
+                      <ThumbDownAltIcon sx={{ ml: 2 }} /> {form.dislikes}
+                      <PersonIcon sx={{ ml: 2 }} /> {form.writer}
                     </Box>
 
                     <Typography fontSize={13} color="#666" mt={1} mb={3}>

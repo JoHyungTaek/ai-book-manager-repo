@@ -1,26 +1,27 @@
 package com.aivle.backend.board.controller;
 
 import com.aivle.backend.board.domain.Board;
+import com.aivle.backend.board.dto.BoardRequestDto;
 import com.aivle.backend.board.service.BoardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/boards")
+@RequestMapping("/api/boards")
 @RequiredArgsConstructor
 public class BoardController {
     public final BoardService boardService;
 
     @PostMapping
-    public Board createBoard(@RequestBody Board board) {
-        return boardService.insertBoard(board);
+    public Board createBoard(@RequestParam String userId, @RequestBody BoardRequestDto boardRequestDto) {
+        return boardService.insertBoard(userId, boardRequestDto);
     }
 
-    @PutMapping
-    public Board updateBoard(@RequestBody Board board) {
-        return boardService.updateBoard(board);
+    @PutMapping("/{boardId}")
+    public Board updateBoard(@PathVariable Long boardId, @RequestBody BoardRequestDto boardRequestDto) {
+        return boardService.updateBoard(boardId, boardRequestDto);
     }
 
     @DeleteMapping("/{boardId}")
@@ -35,7 +36,7 @@ public class BoardController {
     }
 
     @GetMapping
-    public List<Board> getBoardList() {
-        return boardService.getBoardsAll();
+    public Page<Board> getBoardList(Pageable pageable) {
+        return boardService.findBoardAll(pageable);
     }
 }
