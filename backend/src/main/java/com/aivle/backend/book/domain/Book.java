@@ -7,6 +7,8 @@ import lombok.*;
 import com.aivle.backend.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -52,6 +54,11 @@ public class Book {
     @Builder.Default
     @Column(nullable = false)
     private int dislikes = 0;
+
+    // BookLike와의 연관관계 설정
+    @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private List<BookLike> likesList = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

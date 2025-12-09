@@ -162,10 +162,10 @@ export default function BookUpdate() {
                     </Button>
 
                     {/* 좋아요/작성자 표시(수정불가 영역) */}
-                    <Box sx={{ opacity:.6, display:"flex", alignItems:"center", gap:1 }}>
-                        <ThumbUpAltIcon/> {form.likes}
-                        <ThumbDownAltIcon sx={{ml:2}}/>
-                        <PersonIcon sx={{ml:2}}/> {form.writer}
+                    <Box sx={{ opacity: 0.6, display: "flex", alignItems: "center", gap: 1 }}>
+                      <ThumbUpAltIcon /> {form.likes}
+                      <ThumbDownAltIcon sx={{ ml: 2 }} /> {form.dislikes}
+                      <PersonIcon sx={{ ml: 2 }} /> {form.writer}
                     </Box>
 
                     <Typography fontSize={13} color="#666" mt={1} mb={3}>

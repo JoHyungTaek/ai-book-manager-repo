@@ -111,7 +111,6 @@ public class BookService {
         if (!book.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인이 작성한 글만 삭제할 수 있습니다.");
         }
-
         bookRepository.delete(book);
     }
 
