@@ -1,57 +1,47 @@
 // 2025-12-05 16:34 형택님 마지막 수정으로 복구
 
 import { useState, useEffect } from "react";
-import { Box, Typography, TextField, MenuItem, Button } from "@mui/material";
+import { Box, Typography, TextField, MenuItem, Button, Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import ThumbDownAltIcon from "@mui/icons-material/ThumbDownAlt";
 import PersonIcon from "@mui/icons-material/Person";
-import {updateBook, fetchBookDetail} from "../api/bookApi";
+import CloseIcon from "@mui/icons-material/Close";
+import { updateBook, fetchBookDetail } from "../api/bookApi";
+
+// 🔽 추가
+import AiBookCover from "./AiBookCover";
 
 export default function BookUpdate() {
 
     const { id } = useParams();
     const nav = useNavigate();
-//     const [form, setForm] = useState(original);
-//    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
     const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
-    
-    // 수정 전 기존 데이터 (백엔드 연동 시 GET)
-//     const original = {
-//         title: "책 먹는 여우",
-//         author: "프란치스카 비어만",
-//         category: "유아도서",
-//         content: "너무 책을 좋아해서 먹어버린다는 이야기...",
-//         img: "https://image.aladin.co.kr/product/8/47/cover/s9788937864472.jpg",
-//         likes: 4,
-//         writer: "에이블스쿨08",
-//         updated: "2025-12-04 16:11"
-//     };
-
-        const [form, setForm] = useState({
-            bookTitle: "",
-            author: "",
-            category: "",
-            content: "",
-            bookImageUrl: "",
-            likes: 0,
-            writer: "",
-            updated: ""
+    const [form, setForm] = useState({
+        bookTitle: "",
+        author: "",
+        category: "",
+        content: "",
+        bookImageUrl: "",
+        likes: 0,
+        writer: "",
+        updated: ""
     });
+
+    // 🔽 AI 표지 생성 팝업 상태
+    const [openCover, setOpenCover] = useState(false);
 
     useEffect(() => {
         const loadBook = async () => {
             try {
                 const data = await fetchBookDetail(id);
 
-                // 여기에서 localStorage 값을 같이 반영
                 const storedCover = localStorage.getItem("aiSelectedCover");
 
                 if (storedCover) {
                     setForm({
                         ...data,
-                        // 서버에서 온 값 대신, AI로 선택한 이미지를 우선 사용
                         bookImageUrl: storedCover,
                     });
                 } else {
@@ -69,7 +59,6 @@ export default function BookUpdate() {
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
-    
 
     // 저장
     const save = async () => {
@@ -92,12 +81,10 @@ export default function BookUpdate() {
                  `현재 길이: ${form.bookImageUrl.length}자\n` +
                  `허용 최대: 1000자\n\n` +
                  `▶ URL을 줄이거나, 다른 방식(직접 업로드 등)으로 저장해 주세요.`
-                   );            
-                }
+               );            
+            }
         }
     };
-
-    
 
     return(
         <Box sx={{ width:"100%", maxWidth:"1100px", mx:"auto", mt:4 }}>
@@ -114,7 +101,7 @@ export default function BookUpdate() {
                       <img
                         src={form.bookImageUrl}
                         alt={form.bookTitle}
-                        style={{ width: "300px", height: "420px", borderRadius: "6px" }}
+                        style={{ width:"300px", height:"420px", borderRadius:"6px" }}
                       />
                     ) : (
                       <Typography color="#999">이미지 없음</Typography>
@@ -141,32 +128,22 @@ export default function BookUpdate() {
                     <Typography fontSize={20} fontWeight={700} mt={1}>책 표지 URL</Typography>
                     <TextField fullWidth name="bookImageUrl" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
 
-                    
-
                     <Button
                         variant="outlined"
                         fullWidth
-                        sx={{ py: 1.4, mb: 3 }}
+                        sx={{ py:1.4, mb:3 }}
                         onClick={() => {
-                            nav("/book/update/ai-book-cover", {
-                              state: {
-                                bookId: id,
-                                bookTitle: form.bookTitle,  // 현재 도서 제목
-                                content: form.content,      // 현재 도서 내용
-                                author: form.author,        // 현재 작가명
-                                category: form.category     // 현재 도서 카테고리
-                              }
-                            });
+                            setOpenCover(true);   // 🔹 라우팅 대신 팝업 열기
                         }}
-                        >
+                    >
                         🔥 이미지 생성하기
                     </Button>
 
                     {/* 좋아요/작성자 표시(수정불가 영역) */}
-                    <Box sx={{ opacity: 0.6, display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ opacity:0.6, display:"flex", alignItems:"center", gap:1 }}>
                       <ThumbUpAltIcon /> {form.likes}
-                      <ThumbDownAltIcon sx={{ ml: 2 }} /> {form.dislikes}
-                      <PersonIcon sx={{ ml: 2 }} /> {form.writer}
+                      <ThumbDownAltIcon sx={{ ml:2 }} /> {form.dislikes}
+                      <PersonIcon sx={{ ml:2 }} /> {form.writer}
                     </Box>
 
                     <Typography fontSize={13} color="#666" mt={1} mb={3}>
@@ -184,6 +161,41 @@ export default function BookUpdate() {
                     취소
                 </Button>
             </Box>
+
+            {/* 🔽 AiBookCover 팝업(Dialog) */}
+            <Dialog
+              open={openCover}
+              onClose={() => setOpenCover(false)}
+              maxWidth="md"
+              fullWidth
+            >
+              {/* 🔹 여기: "AI 표지 생성하기" + X 버튼 같은 줄 */}
+              <DialogTitle sx={{ m:0, p:2 }}>
+                <Box sx={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                  <Typography variant="h6">AI 표지 생성하기</Typography>
+                  <IconButton size="small" onClick={() => setOpenCover(false)}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+              </DialogTitle>
+
+              <DialogContent dividers sx={{ p:0 }}>
+                <AiBookCover
+                  bookId={id}
+                  bookTitle={form.bookTitle}
+                  author={form.author}
+                  content={form.content}
+                  category={form.category}
+                  onSelect={(url) => {
+                    if (url) {
+                      setForm(prev => ({ ...prev, bookImageUrl: url }));
+                    }
+                    setOpenCover(false);
+                  }}
+                  onClose={() => setOpenCover(false)}
+                />
+              </DialogContent>
+            </Dialog>
 
         </Box>
     );
