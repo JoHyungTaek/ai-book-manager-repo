@@ -14,19 +14,13 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Board {
-
+public class Reply {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId; // 게시판 아이디
-
-    @Column(nullable = false)
-    private String title; // 제목
+    private Long replyId; // 댓글 아이디
 
     @Column(nullable = false)
     private String content; // 내용
-
-    private int views; // 조회 수
 
     @CreationTimestamp
     private LocalDate createAt;
@@ -38,4 +32,9 @@ public class Board {
     @ManyToOne
     @JoinColumn(name = "id", nullable = false)
     private User user;
+
+    // user join
+    @ManyToOne
+    @JoinColumn(name = "board_id")
+    private Board board;
 }
