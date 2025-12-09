@@ -14,7 +14,6 @@ public class ReplyResponseDto {
     private final LocalDate createAt;
     private final LocalDate updateAt;
     private final UserResponseDto user;
-    private final BoardResponseDto board;
 
     public static ReplyResponseDto of(Reply reply) {
         return new ReplyResponseDto(
@@ -22,8 +21,7 @@ public class ReplyResponseDto {
             reply.getContent(),
             reply.getCreateAt(),
             reply.getUpdateAt(),
-            UserResponseDto.of(reply.getUser()),
-            BoardResponseDto.of(reply.getBoard())
+            UserResponseDto.of(reply.getUser())
         );
     }
 }
