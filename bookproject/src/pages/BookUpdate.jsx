@@ -13,9 +13,10 @@ export default function BookUpdate() {
     const { id } = useParams();
     const nav = useNavigate();
 //     const [form, setForm] = useState(original);
-    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
+//    const [apiKey, setApiKey] = useState(""); // ← openAI 키 입력값
     const categories = ["소설", "시/에세이", "과학/기술", "철학", "자기계발", "역사", "사회", "기타"];
 
+    
     // 수정 전 기존 데이터 (백엔드 연동 시 GET)
 //     const original = {
 //         title: "책 먹는 여우",
@@ -28,7 +29,7 @@ export default function BookUpdate() {
 //         updated: "2025-12-04 16:11"
 //     };
 
-    const [form, setForm] = useState({
+        const [form, setForm] = useState({
             bookTitle: "",
             author: "",
             category: "",
@@ -43,7 +44,19 @@ export default function BookUpdate() {
         const loadBook = async () => {
             try {
                 const data = await fetchBookDetail(id);
-                setForm(data);
+
+                // 여기에서 localStorage 값을 같이 반영
+                const storedCover = localStorage.getItem("aiSelectedCover");
+
+                if (storedCover) {
+                    setForm({
+                        ...data,
+                        // 서버에서 온 값 대신, AI로 선택한 이미지를 우선 사용
+                        bookImageUrl: storedCover,
+                    });
+                } else {
+                    setForm(data);
+                }
             } catch (err) {
                 console.error("도서 불러오기 실패:", err);
                 alert("도서 정보를 가져오지 못했습니다.");
@@ -52,9 +65,11 @@ export default function BookUpdate() {
         loadBook();
     }, [id]);
 
+
     const handleChange = e => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
+    
 
     // 저장
     const save = async () => {
@@ -114,28 +129,32 @@ export default function BookUpdate() {
                     <Typography fontSize={20} fontWeight={700} mt={1}>책 표지 URL</Typography>
                     <TextField fullWidth name="bookImageUrl" value={form.bookImageUrl} onChange={handleChange} sx={{mb:4}}/>
 
-                    {/* 🔥 OpenAI 키 입력 + 이미지 생성 버튼 */}
-                    <Typography fontSize={20} fontWeight={700}>API KEY (이미지 생성 옵션)</Typography>
-                    <TextField
-                        fullWidth
-                        placeholder="OpenAI API 키 입력"
-                        value={apiKey}
-                        onChange={(e)=>setApiKey(e.target.value)}
-                        sx={{mt:1, mb:2}}
-                    />
+                    
 
                     <Button
                         variant="outlined"
                         fullWidth
                         sx={{ py: 1.4, mb: 3 }}
                         onClick={() => {
-                            nav("/ai-book-cover", {
-                            state: {
-                                title: form.bookTitle,         // 현재 도서 제목
+//                            nav("/book/update/ai-book-cover", {
+//                             state: {
+//                                 title: form.bookTitle,         // 현재 도서 제목 <-- 내가 작성한 코드
+//                                 bookId: id,
+//                                 bookTitle: form.bookTitle,          // 현재 도서 제목 <-- ai쪽 작성 코드
+//                                 content: form.content,      // 현재 도서 내용
+//                                 author: form.author,        // 현재 작가명
+//                                 category: form.category     // 현재 도서 카테고리
+//                             }
+//                            });
+                                // ai쪽 코드
+                            nav("/book/update/ai-book-cover", {
+                              state: {
+                                bookId: id,
+                                bookTitle: form.bookTitle,  // 현재 도서 제목
                                 content: form.content,      // 현재 도서 내용
                                 author: form.author,        // 현재 작가명
                                 category: form.category     // 현재 도서 카테고리
-                            }
+                              }
                             });
                         }}
                         >

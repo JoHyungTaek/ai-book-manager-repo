@@ -16,6 +16,7 @@ import BoardList from "./pages/BoardList";
 import BoardDetail from "./pages/BoardDetail";
 import BoardWrite from "./pages/BoardWrite";
 import BoardUpdate from "./pages/BoardUpdate";  // 이서영 추가
+import AiBookCover from "./pages/AiBookCover"; // 이유환 추가
 
 function App() {
     return (
@@ -53,6 +54,10 @@ function App() {
                             <ProtectedRoute><BookUpdate /></ProtectedRoute>
                         }/>
 
+                        <Route path="/book/update/ai-book-cover" element={
+                            <ProtectedRoute><AiBookCover /></ProtectedRoute>
+                        } />
+
                         <Route path="/board" element={
                             <ProtectedRoute><BoardList /></ProtectedRoute>
                         }/>
@@ -68,6 +73,7 @@ function App() {
                         <Route path="/board/update/:id" element={
                             <ProtectedRoute><BoardUpdate /></ProtectedRoute>
                         }/>
+                        
 
                     </Routes>
                 </div>
