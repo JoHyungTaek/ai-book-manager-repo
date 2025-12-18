@@ -1,0 +1,37 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+      nodejs: 18
+    commands:
+      - java -version
+      - node -v
+      - npm -v
+
+  pre_build:
+    commands:
+      - chmod +x backend/gradlew || true
+
+  build:
+    commands:
+      - echo "Backend build start"
+      - cd backend
+      - ./gradlew clean build -x test
+      - cd ..
+
+      - echo "Frontend build start"
+      - cd bookproject
+      - if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - npm run build
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "Build finished"
+
+artifacts:
+  files:
+    - backend/build/libs/*.jar
+    - bookproject/dist/**/*
