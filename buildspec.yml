@@ -1,40 +1,55 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_REGION: us-east-2
+    ACCOUNT_ID: 416225317325
+    BACKEND_REPO: aivle-ai-book-backend
+    FRONTEND_REPO: aivle-ai-book-frontend
+    IMAGE_TAG: latest
+
 phases:
   install:
     runtime-versions:
       java: corretto17
       nodejs: 20
     commands:
-      - echo "[Install] versions"
-      - java -version
-      - node -v
-      - npm -v
+      - echo "[Install] Docker & AWS CLI ready"
+      - aws --version
+      - docker --version
 
   pre_build:
     commands:
-      - echo "[PreBuild] gradlew permission"
-      - chmod +x backend/gradlew || true
+      - echo "[PreBuild] Login to Amazon ECR"
+      - aws ecr get-login-password --region $AWS_REGION |
+        docker login --username AWS --password-stdin \
+        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   build:
     commands:
-      - echo "[Build] Backend build start"
+      - echo "[Build] Backend Docker build"
       - cd backend
-      - ./gradlew clean build -x test
+      - docker build -t $BACKEND_REPO:$IMAGE_TAG .
+      - docker tag $BACKEND_REPO:$IMAGE_TAG \
+        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_REPO:$IMAGE_TAG
       - cd ..
 
-      - echo "[Build] Frontend build start"
+      - echo "[Build] Frontend Docker build"
       - cd bookproject
-      - npm ci
-      - npm run build
+      - docker build -t $FRONTEND_REPO:$IMAGE_TAG .
+      - docker tag $FRONTEND_REPO:$IMAGE_TAG \
+        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_REPO:$IMAGE_TAG
       - cd ..
 
   post_build:
     commands:
-      - echo "[PostBuild] Build finished"
+      - echo "[PostBuild] Push images to ECR"
+      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_REPO:$IMAGE_TAG
+      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_REPO:$IMAGE_TAG
+      - echo "Build and push completed"
 
 artifacts:
   files:
-    - backend/build/libs/*.jar
-    - bookproject/dist/**/*
+    - '**/*'
+
 
