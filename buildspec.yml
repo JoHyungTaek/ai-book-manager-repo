@@ -7,6 +7,7 @@ env:
     BACKEND_REPO: aivle-ai-book-backend
     FRONTEND_REPO: aivle-ai-book-frontend
     IMAGE_TAG: latest
+    ECR_BASE: 416225317325.dkr.ecr.us-east-2.amazonaws.com
 
 phases:
   install:
@@ -14,42 +15,37 @@ phases:
       java: corretto17
       nodejs: 20
     commands:
-      - echo "[Install] Docker & AWS CLI ready"
+      - set -e
+      - echo "[Install] versions"
       - aws --version
       - docker --version
 
   pre_build:
     commands:
       - echo "[PreBuild] Login to Amazon ECR"
-      - aws ecr get-login-password --region $AWS_REGION |
-        docker login --username AWS --password-stdin \
-        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_BASE"
 
   build:
     commands:
       - echo "[Build] Backend Docker build"
       - cd backend
-      - docker build -t $BACKEND_REPO:$IMAGE_TAG .
-      - docker tag $BACKEND_REPO:$IMAGE_TAG \
-        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_REPO:$IMAGE_TAG
+      - docker build -t "$BACKEND_REPO:$IMAGE_TAG" .
+      - docker tag "$BACKEND_REPO:$IMAGE_TAG" "$ECR_BASE/$BACKEND_REPO:$IMAGE_TAG"
       - cd ..
 
       - echo "[Build] Frontend Docker build"
       - cd bookproject
-      - docker build -t $FRONTEND_REPO:$IMAGE_TAG .
-      - docker tag $FRONTEND_REPO:$IMAGE_TAG \
-        $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_REPO:$IMAGE_TAG
+      - docker build -t "$FRONTEND_REPO:$IMAGE_TAG" .
+      - docker tag "$FRONTEND_REPO:$IMAGE_TAG" "$ECR_BASE/$FRONTEND_REPO:$IMAGE_TAG"
       - cd ..
 
   post_build:
     commands:
       - echo "[PostBuild] Push images to ECR"
-      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_REPO:$IMAGE_TAG
-      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_REPO:$IMAGE_TAG
+      - docker push "$ECR_BASE/$BACKEND_REPO:$IMAGE_TAG"
+      - docker push "$ECR_BASE/$FRONTEND_REPO:$IMAGE_TAG"
       - echo "Build and push completed"
 
 artifacts:
   files:
-    - '**/*'
-
-
+    - buildspec.yml
