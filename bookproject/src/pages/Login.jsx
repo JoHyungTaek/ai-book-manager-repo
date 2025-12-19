@@ -1,5 +1,3 @@
-// 2025-12-05 16:52 소진님 마지막 수정으로 복구
-
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
