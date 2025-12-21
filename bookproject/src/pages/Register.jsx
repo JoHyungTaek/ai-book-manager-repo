@@ -30,7 +30,7 @@ export default function Register() {
         }
 
         try {
-            const res = await fetch("http://localhost:8080/auth/signup", {
+            const res = await fetch("http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com/auth/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

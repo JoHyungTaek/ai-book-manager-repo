@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: "http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com",
 });
 
 instance.interceptors.request.use((config) => {

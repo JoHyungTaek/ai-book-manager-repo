@@ -21,7 +21,7 @@ export default function Login() {
         }
 
         try {
-            const res = await fetch("http://localhost:8080/auth/login", {
+            const res = await fetch("http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

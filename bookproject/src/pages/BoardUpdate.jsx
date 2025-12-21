@@ -19,7 +19,7 @@ export default function BoardUpdate() {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
  
-    axios.get("http://localhost:8080/auth/me", {
+    axios.get("http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
     .then(res => setLoginUser(res.data.email))

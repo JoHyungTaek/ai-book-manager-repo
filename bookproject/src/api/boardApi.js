@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-    baseURL: "http://localhost:8080", // 백엔드 주소
+    baseURL: "http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com", // 백엔드 주소
 });
 
 // ✅ 모든 요청에 Authorization 헤더 자동 추가
