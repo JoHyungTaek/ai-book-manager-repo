@@ -9,11 +9,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")                 // 어떤 URL 패턴에 CORS를 적용할지
-                .allowedOrigins("http://localhost:5173") // 허용할 프론트 주소
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용할 HTTP 메서드
-                .allowedHeaders("*")                    // 어떤 헤더를 허용할지
-                .allowCredentials(true)                 // 쿠키/인증정보 허용할지
-                .maxAge(3600);                          // Preflight 결과 캐시 시간(초)
+        registry.addMapping("/**")
+                // ✅ 프론트 NLB 주소 (반드시 정확히)
+                .allowedOriginPatterns(
+                        "http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }
