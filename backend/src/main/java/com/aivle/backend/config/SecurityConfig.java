@@ -26,6 +26,9 @@ public class SecurityConfig {
                 // CSRF 끄기
                 .csrf(csrf -> csrf.disable())
 
+                // ✅ CORS 활성화 (아래 corsConfigurationSource() Bean을 사용)
+                .cors(Customizer.withDefaults())
+
                 // H2-console frame 허용
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.disable())
@@ -59,6 +62,20 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // ✅ CORS 설정 Bean 추가 (테스트용 전체 허용)
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        var config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // 일단 테스트용
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
