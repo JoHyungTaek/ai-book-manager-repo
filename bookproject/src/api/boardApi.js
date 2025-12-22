@@ -6,6 +6,11 @@ export async function getBoards(params = {}) {
     return res.data;
 }
 
+// ✅ BoardList.jsx에서 import { fetchBoard } 를 쓰고 있어서 alias 제공
+export async function fetchBoard(params = {}) {
+    return getBoards(params);
+}
+
 // 게시글 상세
 export async function fetchBoardDetail(boardId) {
     const res = await api.get(`/api/boards/${boardId}`);
