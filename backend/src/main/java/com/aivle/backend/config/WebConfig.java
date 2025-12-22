@@ -9,11 +9,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")   // ✅ 테스트용 (운영에선 프론트 도메인으로 제한)
-                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
+                .allowedOrigins(
+                        "http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600);
+                .allowCredentials(true);
     }
 }
