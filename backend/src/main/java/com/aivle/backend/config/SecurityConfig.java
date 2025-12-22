@@ -11,6 +11,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsUtils;
 
 @Configuration
 @EnableMethodSecurity
@@ -41,6 +43,10 @@ public class SecurityConfig {
 
                 // 요청별 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // ✅ CORS preflight(OPTIONS) 무조건 허용 (이게 핵심)
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers(
                                 "/auth/signup",
                                 "/auth/login",
@@ -48,11 +54,10 @@ public class SecurityConfig {
                                 "/h2-console/**"
                         ).permitAll()
                         .requestMatchers("/auth/me").authenticated()
-                        // ✅ 로그인한 사용자라면 /api/** 요청 허용
                         .requestMatchers("/api/**").authenticated()
-                        // ❌ 그 외는 모두 차단
                         .anyRequest().denyAll()
                 )
+
 
                 // 폼로그인, httpBasic 비활성화
                 .formLogin(form -> form.disable())
@@ -69,7 +74,12 @@ public class SecurityConfig {
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         var config = new org.springframework.web.cors.CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // 일단 테스트용
+
+        // ✅ 프론트 ELB 정확히 허용
+        config.addAllowedOrigin("http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com");
+        // (로컬 테스트도 필요하면 추가)
+        // config.addAllowedOrigin("http://localhost:5173");
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
@@ -77,6 +87,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
