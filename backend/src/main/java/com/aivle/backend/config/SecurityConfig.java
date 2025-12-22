@@ -1,63 +1,98 @@
 package com.aivle.backend.config;
 
-import com.aivle.backend.jwt.JwtAuthenticationFilter;
-import com.aivle.backend.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    // 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // CSRF 비활성화
+                // CSRF 끄기
                 .csrf(csrf -> csrf.disable())
 
-                // 세션 안 씀 (JWT)
+                // ✅ CORS 적용 (아래 corsConfigurationSource() 사용)
+                .cors(Customizer.withDefaults())
+
+                // H2-console frame 허용
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+
+                // 세션을 사용하지 않는 JWT 방식
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // CORS 허용 (WebConfig에서 처리)
-                .cors(cors -> {})
-
-                // 권한 설정 ⭐⭐⭐ 핵심
+                // 요청별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // 인증 없이 허용
                         .requestMatchers(
-                                "/auth/**",
+                                "/auth/signup",
+                                "/auth/login",
+                                "/auth/reissue",
                                 "/h2-console/**"
                         ).permitAll()
 
-                        // 게시판 API → 로그인만 하면 가능 ⭐⭐⭐
-                        .requestMatchers("/api/boards/**").authenticated()
+                        // 로그인된 사용자만
+                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/api/**").authenticated()
 
-                        // 나머지는 인증 필요
-                        .anyRequest().authenticated()
+                        // 그 외는 모두 차단
+                        .anyRequest().denyAll()
                 )
 
-                // JWT 필터
-                .addFilterBefore(
-                        new JwtAuthenticationFilter(jwtTokenProvider),
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                // 폼로그인, httpBasic 비활성화
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
 
-        // h2-console iframe 허용
-        http.headers(headers ->
-                headers.frameOptions(frame -> frame.disable())
-        );
+                // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // ✅ CORS 설정 (프론트 NLB 도메인 + 로컬 둘 다 허용)
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // 쿠키/인증 허용 시 * 단독 사용 불가 → allowedOriginPatterns 사용
+        config.setAllowCredentials(true);
+
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com"
+        ));
+
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
