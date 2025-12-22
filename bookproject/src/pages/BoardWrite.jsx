@@ -1,47 +1,39 @@
 import { useEffect, useState } from "react";
 import { Box, TextField, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { createBoard } from "../api/boardApi.js";
-import axios from "axios"; // ← 이동을 위한 추가
+import { createBoard } from "../api/boardApi";
+import api from "../api/axios";
 
 export default function BoardWrite() {
-    const nav = useNavigate(); // 페이지 이동 준비
+    const nav = useNavigate();
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) return;
-
-        console.log("🔑 accessToken:", token);
-
-        axios
-            // ✅ FIX: 루트(/) 호출하면 백엔드 Security에서 403 나서 /auth/me로 호출해야 함
-            .get(
-                "http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com/auth/me",
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            )
+        // ✅ /auth/me로 로그인 사용자 정보 가져오기
+        api
+            .get("/auth/me")
             .then((res) => {
                 console.log("👤 로그인 유저:", res.data);
+                // 게시판은 String userId를 받는 구조라 email 사용
                 setUserId(res.data.email);
             })
-            .catch((err) => console.error("유저 정보 조회 실패:", err));
-    }, []);
+            .catch((err) => {
+                console.error("유저 정보 조회 실패:", err);
+                alert("로그인이 필요합니다. 다시 로그인 해주세요.");
+                nav("/login");
+            });
+    }, [nav]);
 
     async function handleSubmit() {
         if (!title.trim()) return alert("제목을 입력해주세요.");
         if (!content.trim()) return alert("내용을 입력해주세요.");
+        if (!userId) return alert("로그인 정보가 없습니다.");
 
         try {
-            const data = {
-                title: title,
-                content: content,
-            };
-
+            const data = { title, content };
             await createBoard(data, userId);
             alert("등록 완료!");
             nav("/board");
