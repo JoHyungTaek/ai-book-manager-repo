@@ -1,72 +1,77 @@
-// ✅ src/pages/BoardWrite.jsx
-import { useEffect, useState } from "react";
-import { Box, TextField, Button } from "@mui/material";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createBoard } from "../api/boardApi";
-import api from "../api/axios"; // ✅ (1) 여기 경로 고침: "./axios" -> "../api/axios"
+import api from "../api/axios";
 
 export default function BoardWrite() {
-    const nav = useNavigate();
-
+    const navigate = useNavigate();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        // ✅ 로그인 확인용 (토큰 없으면 여기서 401/403 나고 로그인으로 보냄)
-        api
-            .get("/auth/me")
-            .then((res) => {
-                console.log("👤 로그인 유저:", res.data);
-            })
-            .catch((err) => {
+        (async () => {
+            try {
+                // ✅ /api/auth/me 로 변경 (nginx가 /api/만 백엔드로 프록시함)
+                const res = await api.get("/api/auth/me");
+                setUser(res.data);
+            } catch (err) {
                 console.error("유저 정보 조회 실패:", err);
-                alert("로그인이 필요합니다. 다시 로그인 해주세요.");
-                nav("/login");
-            });
-    }, [nav]);
+                alert("로그인이 필요합니다.");
+                navigate("/login");
+            }
+        })();
+    }, [navigate]);
 
-    async function handleSubmit() {
-        if (!title.trim()) return alert("제목을 입력해주세요.");
-        if (!content.trim()) return alert("내용을 입력해주세요.");
-
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
-            const data = { title, content };
-
-            await createBoard(data); // ✅ (2) createBoard(data, userId) -> createBoard(data)
-
-            alert("등록 완료!");
-            nav("/board");
-        } catch (e) {
-            console.error(e);
-            alert("등록 실패");
+            await api.post("/api/boards", { title, content });
+            alert("게시글 등록 완료!");
+            navigate("/board");
+        } catch (err) {
+            console.error(err);
+            alert("게시글 등록 실패");
         }
-    }
+    };
 
     return (
-        <Box sx={{ maxWidth: 600, mx: "auto", mt: 5 }}>
-            <h2>게시글 작성</h2>
+        <div style={{ padding: "30px" }}>
+            <h2>새 글 작성</h2>
 
-            <TextField
-                fullWidth
-                label="제목"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                sx={{ my: 2 }}
-            />
+            <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: "10px" }}>
+                    <input
+                        style={{ width: "100%", padding: "10px" }}
+                        placeholder="제목"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                </div>
 
-            <TextField
-                fullWidth
-                label="내용"
-                multiline
-                rows={6}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                sx={{ my: 2 }}
-            />
+                <div style={{ marginBottom: "10px" }}>
+          <textarea
+              style={{ width: "100%", height: "240px", padding: "10px" }}
+              placeholder="내용"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+          />
+                </div>
 
-            <Button variant="contained" fullWidth onClick={handleSubmit}>
-                등록
-            </Button>
-        </Box>
+                <button
+                    type="submit"
+                    style={{
+                        width: "100%",
+                        padding: "12px",
+                        background: "#1976d2",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                    }}
+                >
+                    등록
+                </button>
+            </form>
+        </div>
     );
 }

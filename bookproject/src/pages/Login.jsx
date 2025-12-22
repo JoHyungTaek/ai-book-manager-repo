@@ -1,139 +1,76 @@
-import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 export default function Login() {
-    const nav = useNavigate();
+    const navigate = useNavigate();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-    const [form, setForm] = useState({
-        email: "",
-        pw: "",
-    });
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const login = async () => {
-        if (!form.email || !form.pw) {
-            alert("이메일과 비밀번호를 입력해주세요.");
-            return;
-        }
-
+    const handleLogin = async (e) => {
+        e.preventDefault();
         try {
-            const res = await fetch("http://k8s-default-backends-3f4da00310-50ce291275241507.elb.us-east-2.amazonaws.com/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: form.email,
-                    password: form.pw,
-                }),
-            });
+            const res = await api.post("/api/auth/login", { email, password });
 
-            if (!res.ok) {
-                const data = await res.json().catch(() => null);
-                alert(data?.message || "로그인에 실패했습니다.");
-                return;               // ❗ 실패면 여기서 끝, 페이지 안 넘어감
+            const accessToken = res.data?.accessToken;
+            const refreshToken = res.data?.refreshToken;
+
+            if (!accessToken) {
+                alert("로그인 응답에 accessToken이 없습니다.");
+                return;
             }
 
-            const data = await res.json();
+            localStorage.setItem("accessToken", accessToken);
+            if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
 
-            // 토큰 내려오면 저장
-            if (data.accessToken) {
-                localStorage.setItem("accessToken", data.accessToken);
-            }
-            if (data.refreshToken) {
-                localStorage.setItem("refreshToken", data.refreshToken);
-            }
-
-            if (data.nickname) {
-                localStorage.setItem("nickname", data.nickname); // ✅ 추가
-            }
-
-            localStorage.setItem(
-                "loginUser",
-                JSON.stringify({
-                    email: form.email,
-                    nickname: data.nickname || "",
-                })
-            );
+            // (기존 프로젝트에서 쓰면 유지)
+            localStorage.setItem("loginUser", JSON.stringify(res.data));
 
             alert("로그인 성공!");
-            nav("/main");           // 메인 페이지로 이동
+            navigate("/");
         } catch (err) {
             console.error(err);
-            alert("서버와 통신에 실패했습니다.");
+            alert("로그인 실패");
         }
     };
 
     return (
-        <Box
-            sx={{
-                width: "100%",
-                height: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                bgcolor: "#f8f8f8",
-            }}
-        >
-            <Paper
-                elevation={6}
-                sx={{
-                    p: 5,
-                    width: "400px",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                }}
-            >
-                <Typography fontSize={28} fontWeight="bold" mb={1}>
-                    📚 BOOK LOGIN
-                </Typography>
-                <Typography fontSize={14} mb={4} color="#666">
-                    도서 관리 시스템에 로그인하세요
-                </Typography>
+        <div style={{ padding: "30px" }}>
+            <h2>로그인</h2>
+            <form onSubmit={handleLogin}>
+                <div style={{ marginBottom: "10px" }}>
+                    <input
+                        style={{ width: "100%", padding: "10px" }}
+                        placeholder="이메일"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+                <div style={{ marginBottom: "10px" }}>
+                    <input
+                        style={{ width: "100%", padding: "10px" }}
+                        type="password"
+                        placeholder="비밀번호"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
 
-                <TextField
-                    fullWidth
-                    label="이메일"
-                    name="email"
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                    value={form.email}
-                    onChange={handleChange}
-                />
-
-                <TextField
-                    fullWidth
-                    label="비밀번호"
-                    name="pw"
-                    type="password"
-                    variant="outlined"
-                    sx={{ mb: 4 }}
-                    value={form.pw}
-                    onChange={handleChange}
-                />
-
-                <Button
-                    fullWidth
-                    variant="contained"
-                    sx={{ py: 1.5, fontSize: 18, bgcolor: "#00b6b8" }}
-                    onClick={login}
+                <button
+                    type="submit"
+                    style={{
+                        width: "100%",
+                        padding: "12px",
+                        background: "#1976d2",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                    }}
                 >
                     로그인
-                </Button>
-
-                <Button
-                    fullWidth
-                    variant="text"
-                    sx={{ mt: 2, fontSize: 16, color: "#333" }}
-                    onClick={() => nav("/register")}
-                >
-                    회원가입 →
-                </Button>
-            </Paper>
-        </Box>
+                </button>
+            </form>
+        </div>
     );
 }
