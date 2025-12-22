@@ -1,17 +1,13 @@
 package com.aivle.backend.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -19,97 +15,63 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@EnableMethodSecurity
-@RequiredArgsConstructor
+@EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ✅ CORS 반드시 활성화 (corsConfigurationSource()를 사용)
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
 
-                // CSRF 끄기 (JWT 기반이면 보통 disable)
-                .csrf(csrf -> csrf.disable())
-
-                // H2-console frame 허용
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-
-                // 세션 사용 안함 (JWT)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                // ✅ 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ CORS Preflight(OPTIONS)는 무조건 열어야 함 (이거 없으면 지금처럼 막힘)
+                        // ✅ CORS Preflight(OPTIONS) 는 인증 없이 무조건 통과시켜야 함
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 공개 엔드포인트
+                        // Swagger
                         .requestMatchers(
-                                "/auth/signup",
-                                "/auth/login",
-                                "/auth/reissue",
-                                "/h2-console/**"
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
                         ).permitAll()
 
-                        // 인증 필요
-                        .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/api/**").authenticated()
+                        // H2 Console
+                        .requestMatchers("/h2-console/**").permitAll()
 
-                        // 그 외 전부 차단
-                        .anyRequest().denyAll()
-                )
+                        // Auth
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                // 기본 인증/폼 로그인 비활성화
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(form -> form.disable())
+                        // 나머지는 인증 필요 (프로젝트 정책에 맞게 유지)
+                        .anyRequest().authenticated()
+                );
 
-                // ✅ JWT 필터 등록
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        // h2 console iframe 허용 필요 시
+        http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
     }
 
-    /**
-     * ✅ CORS 설정
-     * - 프론트 ELB에서 오는 요청 허용
-     * - Authorization 헤더 허용
-     * - OPTIONS 허용
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        // 지금 구조는 Authorization Bearer 방식이라 보통 false 권장
-        // (쿠키/세션 기반이면 true + allowedOrigins에 '*' 못 씀)
-        config.setAllowCredentials(false);
+        // ✅ 배포/로컬 프론트 Origin 허용 (ELB DNS는 매번 바뀔 수 있어 패턴으로 허용)
+        // - allowCredentials(true) 쓰면 addAllowedOrigin("*") 불가 → 패턴/명시 Origin 써야 함
+        corsConfiguration.addAllowedOriginPattern("http://k8s-default-frontend-*.elb.us-east-2.amazonaws.com");
+        corsConfiguration.addAllowedOriginPattern("https://k8s-default-frontend-*.elb.us-east-2.amazonaws.com");
+        corsConfiguration.addAllowedOriginPattern("http://localhost:5173");
+        corsConfiguration.addAllowedOriginPattern("http://localhost:3000");
 
-        // ✅ 프론트 origin 정확히 넣기 (http/https, 포트, 끝 슬래시 유무 주의)
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com"
-        ));
+        corsConfiguration.setAllowCredentials(true);
 
-        // ✅ 허용 메서드 (OPTIONS 포함)
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
 
-        // ✅ 허용 헤더 (Authorization 꼭 포함)
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // (선택) 프론트에서 응답 헤더 읽어야 하면 노출
-        config.setExposedHeaders(List.of("Authorization"));
+        // 프론트에서 Authorization 헤더 읽어야 하면 노출
+        corsConfiguration.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 }
