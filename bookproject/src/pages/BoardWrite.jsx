@@ -1,25 +1,72 @@
-import api from "./axios";
+// ✅ src/pages/BoardWrite.jsx
+import { useEffect, useState } from "react";
+import { Box, TextField, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { createBoard } from "../api/boardApi";
+import api from "../api/axios"; // ✅ (1) 여기 경로 고침: "./axios" -> "../api/axios"
 
-// 게시글 목록
-export async function getBoards(params = {}) {
-    const res = await api.get("/api/boards", { params });
-    return res.data;
-}
+export default function BoardWrite() {
+    const nav = useNavigate();
 
-// 게시글 상세
-export async function fetchBoardDetail(boardId) {
-    const res = await api.get(`/api/boards/${boardId}`);
-    return res.data;
-}
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
 
-// 게시글 등록 🔑 (JWT 필요)
-export async function createBoard(data) {
-    const res = await api.post("/api/boards", data);
-    return res.data;
-}
+    useEffect(() => {
+        // ✅ 로그인 확인용 (토큰 없으면 여기서 401/403 나고 로그인으로 보냄)
+        api
+            .get("/auth/me")
+            .then((res) => {
+                console.log("👤 로그인 유저:", res.data);
+            })
+            .catch((err) => {
+                console.error("유저 정보 조회 실패:", err);
+                alert("로그인이 필요합니다. 다시 로그인 해주세요.");
+                nav("/login");
+            });
+    }, [nav]);
 
-// 게시글 수정
-export async function updateBoard(boardId, data) {
-    const res = await api.put(`/api/boards/${boardId}`, data);
-    return res.data;
+    async function handleSubmit() {
+        if (!title.trim()) return alert("제목을 입력해주세요.");
+        if (!content.trim()) return alert("내용을 입력해주세요.");
+
+        try {
+            const data = { title, content };
+
+            await createBoard(data); // ✅ (2) createBoard(data, userId) -> createBoard(data)
+
+            alert("등록 완료!");
+            nav("/board");
+        } catch (e) {
+            console.error(e);
+            alert("등록 실패");
+        }
+    }
+
+    return (
+        <Box sx={{ maxWidth: 600, mx: "auto", mt: 5 }}>
+            <h2>게시글 작성</h2>
+
+            <TextField
+                fullWidth
+                label="제목"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                sx={{ my: 2 }}
+            />
+
+            <TextField
+                fullWidth
+                label="내용"
+                multiline
+                rows={6}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                sx={{ my: 2 }}
+            />
+
+            <Button variant="contained" fullWidth onClick={handleSubmit}>
+                등록
+            </Button>
+        </Box>
+    );
 }
