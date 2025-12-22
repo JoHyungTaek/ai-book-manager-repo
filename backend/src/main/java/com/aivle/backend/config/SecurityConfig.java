@@ -1,5 +1,6 @@
 package com.aivle.backend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -7,7 +8,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -16,16 +19,25 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    // ✅ 프로젝트에 이미 있는 필터: backend/src/main/java/com/aivle/backend/config/JwtAuthenticationFilter.java
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // JWT 사용 -> CSRF 불필요
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
 
+                // ✅ 세션 사용 안함(Stateless) : JWT 서버 기본
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ✅ 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ CORS Preflight(OPTIONS) 는 인증 없이 무조건 통과시켜야 함
+                        // CORS Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Swagger
@@ -41,9 +53,12 @@ public class SecurityConfig {
                         // Auth
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 나머지는 인증 필요 (프로젝트 정책에 맞게 유지)
+                        // 나머지는 인증 필요
                         .anyRequest().authenticated()
-                );
+                )
+
+                // ✅ JWT 필터를 SecurityChain에 “반드시” 등록해야 Authorization: Bearer 토큰이 인식됨
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // h2 console iframe 허용 필요 시
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
