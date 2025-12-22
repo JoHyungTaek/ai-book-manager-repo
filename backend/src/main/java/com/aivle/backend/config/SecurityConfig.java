@@ -22,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -43,8 +42,10 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // 요청별 권한 설정
+                // ✅ 핵심: Preflight(OPTIONS)는 무조건 열어야 CORS가 통과함
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers(
                                 "/auth/signup",
                                 "/auth/login",
@@ -70,21 +71,28 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ CORS 설정 (프론트 NLB 도메인 + 로컬 둘 다 허용)
+    // ✅ CORS 설정 (프론트 ELB + 로컬 허용)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 쿠키/인증 허용 시 * 단독 사용 불가 → allowedOriginPatterns 사용
-        config.setAllowCredentials(true);
+        // 지금 너희는 쿠키 인증(withCredentials) 안 쓰고 Authorization 헤더 쓰는 구조라 false 권장
+        config.setAllowCredentials(false);
 
-        config.setAllowedOriginPatterns(List.of(
+        // 프론트 주소 정확히 허용
+        config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://k8s-default-frontend-52350253e4-e25e266af69cea37.elb.us-east-2.amazonaws.com"
         ));
 
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        // 허용 메서드 (OPTIONS 꼭 포함)
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // 허용 헤더 (Authorization 꼭 포함)
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+        // (선택) 프론트가 Authorization 헤더를 응답에서 읽어야 하면 노출
+        config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
