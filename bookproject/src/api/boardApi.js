@@ -1,67 +1,34 @@
-import axios from "axios";
+import api from "./http";
 
-const instance = axios.create({
-    baseURL: "http://localhost:8080", // 백엔드 주소
-});
-
-// ✅ 모든 요청에 Authorization 헤더 자동 추가
-instance.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
-
-export default instance;
-
-/* 게시판 등록
-* url : /boards
-* method: post
-* */
+/* 게시판 등록 */
 export const createBoard = async (userId, data) => {
-    const response = await instance.post(`/api/boards?userId=${userId}`, data);
-    return response.data;
+    const res = await api.post(`/api/boards?userId=${userId}`, data);
+    return res.data;
 };
 
-/* 게시판 목록 불러오기
-* url: /boards
-* method: get
-* */
+/* 게시판 목록 */
 export const fetchBoard = async () => {
-    const response = await instance.get("/api/boards");
-    return response.data.content; // Page 객체의 content 배열만 사용
+    const res = await api.get("/api/boards");
+    return res.data.content ?? res.data; // 백엔드 응답 형태가 달라도 안전하게
 };
 
-/* 게시판 상세 조회
-* url: /boards/{boardId}
-* method: get
-* boardId: 게시판 아이디
-* */
+// 혹시 기존 코드가 fetchBoards로 쓰던 경우 대비(빌드 깨짐 방지)
+export const fetchBoards = fetchBoard;
+
+/* 게시판 상세 */
 export const fetchBoardDetail = async (boardId) => {
-    const response = await instance.get(`/api/boards/${boardId}`);
-    return response.data;
+    const res = await api.get(`/api/boards/${boardId}`);
+    return res.data;
 };
 
-/* 게시판 수정
-* url: /boards/{boardId}
-* method: put
-* boardId: 게시판 아이디
-* */
+/* 게시판 수정 */
 export const updateBoard = async (boardId, data) => {
-    const response = await instance.put(`/api/boards/${boardId}`, data);
-    return response.data;
+    const res = await api.put(`/api/boards/${boardId}`, data);
+    return res.data;
 };
 
-/* 게시판 삭제
-* url: /boards/{boardId}
-* method: delete
-* boardId: 게시판 아이디
-* */
+/* 게시판 삭제 */
 export const deleteBoard = async (boardId) => {
-    const response = await instance.delete(`/api/boards/${boardId}`);
-    return response.data;
+    const res = await api.delete(`/api/boards/${boardId}`);
+    return res.data;
 };
